@@ -26,31 +26,22 @@ def load(show_all=False):
             except:
                 pass
         
-    # cursor.execute("DELETE FROM emotrack WHERE username = 'Айван';")
-    # cursor.execute("ALTER TABLE feedback ADD day INT;")
+    # cursor.execute("DELETE FROM  WHERE username = '';")
+    # cursor.execute("ALTER TABLE  ADD day INT;")
 
     try:
-        cursor.execute("SELECT username FROM emotrack;")
+        cursor.execute("SELECT username FROM ;")
     except:
         # Создание базы данных при ее отсутствии
         cursor.execute("""
             CREATE TABLE emotrack(
-                id INT PRIMARY KEY,
-                username VARCHAR(15),
-                gender VARCHAR(6),
-                email VARCHAR(30),
-                day INT,
-                time VARCHAR(12),
-                blocks INT,
-                breath BOOL,
-                send BOOL,
-                city VARCHAR(255)
+                id INT PRIMARY KEY
             );""")
     cursor.execute("SELECT version();")
     print("Connect to database {} correctly".format(cursor.fetchone()))
 
     # Вывод всех пользователей при старте
-    cursor.execute("SELECT username FROM emotrack;")
+    cursor.execute("SELECT username FROM ;")
     print("Users: ", ", ".join([user[0] for user in cursor.fetchall()]))
 
     return cursor, connection
