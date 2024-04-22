@@ -1,0 +1,6 @@
+name,message
+default,Сообщение не найдено
+succeful_load,Сообщения успешно загружены
+greetings,Привет!
+other_city,Введите свой город
+city_chosen,"Отлично, {}. Выбери услугу"
