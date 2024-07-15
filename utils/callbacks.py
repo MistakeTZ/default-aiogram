@@ -17,7 +17,7 @@ from states import UserState
 # Возвращение в меню
 @dp.callback_query(F.data == "back")
 async def menu_handler(clbck: CallbackQuery, state: FSMContext) -> None:
-    await send_message(clbck.message, "menu", None, state, UserState.default)
+    await send_message(clbck, "menu", None, state, UserState.default)
 
 
 # Начинается с
