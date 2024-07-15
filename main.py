@@ -2,9 +2,8 @@ import asyncio, logging
 import sys
 
 from loader import dp, bot
-# from database.models import unload
-
-from utils import broadcast
+import utils
+# from utils import broadcast
 
 
 # Запуск бота

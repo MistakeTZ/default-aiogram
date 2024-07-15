@@ -5,4 +5,5 @@ class UserState(StatesGroup):
     default = State()
     admin = State()
     email = State()
-    write_city = State()
+    phone = State()
+    time = State()

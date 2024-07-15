@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 import os
 import json
 
@@ -6,7 +5,14 @@ config_file = {}
 
 # Загрузка файла окружения
 def load_env():
-    load_dotenv()
+    with open('.env', 'r') as fh:
+        vars_dict = dict(
+            tuple(line.replace('\n', '').split('='))
+            for line in fh.readlines() if not line.startswith('#')
+        )
+
+    os.environ.update(vars_dict)
+
     update_config()
 
 # Получение текста из файла окружения по ключу

@@ -12,8 +12,7 @@ async def send_messages(bot: Bot):
         users = []
         for user in users:
             try:
-                id = user
-                # update_field(user, "send", True)
+                pass
 
             except:
                 pass
