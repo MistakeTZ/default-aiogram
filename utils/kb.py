@@ -57,5 +57,5 @@ def reply_table(width: int, height: int, one_time: bool = True, *args) -> ReplyK
 
 # Клавиатура телефона
 def phone() -> ReplyKeyboardMarkup:
-    in_buttons = [[KeyboardButton(text=get_text("send_contact"))]]
+    in_buttons = [[KeyboardButton(text=get_text("send_contact"), request_contact=True)]]
     return ReplyKeyboardMarkup(keyboard=in_buttons, one_time_keyboard=True, resize_keyboard=True)

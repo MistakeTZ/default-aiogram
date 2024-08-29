@@ -17,11 +17,14 @@ from states import UserState
 # Установка электронной почты
 @dp.message(UserState.email)
 async def email_check(msg: Message, state: FSMContext):
-    email_regex = "([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+"
-    if not re.fullmatch(email_regex, msg.text):
+    if not msg.entities:
         await send_message(msg, "wrong_email")
         return
-    pass
+    email_entity = msg.entities[0]
+    if email_entity.type != "email":
+        await send_message(msg, "wrong_email")
+        return
+    email = msg.text[email_entity.offset:email_entity.length]
 
 
 # Установка времени
