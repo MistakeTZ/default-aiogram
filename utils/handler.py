@@ -1,12 +1,14 @@
 from aiogram import F
+from aiogram.filters import Filter
 from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.utils.markdown import hlink
 from aiogram.fsm.context import FSMContext
 from loader import dp, bot
 from datetime import datetime
 
 from os import path
 import re
-from config import get_env
+from config import get_env, get_config
 import asyncio
 
 import utils.kb as kb
@@ -51,7 +53,27 @@ async def phone_check(msg: Message, state: FSMContext):
             return
 
 
+# Проверка телефона
 def is_valid_phone_number(phone):
     pattern = r'^(?:8|\+7)\d{10}$'
     cleaned_phone = re.sub(r'[\s\-\(\)]', '', phone)
     return bool(re.match(pattern, cleaned_phone))
+
+
+# Проверка на отсутствие состояний
+class NoStates(Filter):
+    async def __call__(self, message: Message, state: FSMContext):
+        stat = await state.get_state()
+        return stat == None
+
+
+# Сообщение без состояний
+@dp.message(NoStates())
+async def no_states_handler(msg: Message, state: FSMContext):
+    pass
+        
+
+# Сообщение от бизнес-бота
+@dp.business_message()
+async def business_handler(msg: Message, state: FSMContext):
+    pass

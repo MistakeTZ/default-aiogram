@@ -1,6 +1,5 @@
 from aiogram import F
 from aiogram.types.callback_query import CallbackQuery
-from aiogram.types import FSInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.markdown import hlink
 from loader import dp, bot

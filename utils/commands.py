@@ -6,9 +6,9 @@ from aiogram.utils.markdown import hlink
 from loader import dp, bot
 from os import path
 
-from config import get_env
+from config import get_env, get_config
 import utils.kb as kb
-from support.messages import message, send_message
+from support.messages import get_text, send_message
 from states import UserState
 
 
