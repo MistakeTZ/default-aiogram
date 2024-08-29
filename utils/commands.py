@@ -23,6 +23,6 @@ async def command_start_handler(msg: Message, state: FSMContext) -> None:
 # Команда меню
 @dp.message(Command("menu"))
 async def command_settings(msg: Message, state: FSMContext) -> None:
-    await message(msg, "menu", None, state, UserState.default)
+    await send_message(msg, "menu", None, state, UserState.default)
 
     
