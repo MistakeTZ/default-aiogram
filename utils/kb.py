@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 from datetime import datetime
-from config import get_config, get_env, update_config
+from config import get_config, get_env
 from loader import sender
 
 

@@ -2,11 +2,11 @@ import asyncio
 import datetime
 from utils import kb
 from aiogram import Bot
-from support.messages import get_text
+from loader import bot, sender
 
 
 # Отправка запланированных сообщений
-async def send_messages(bot: Bot):
+async def send_messages():
     await asyncio.sleep(5)
     while True:
         users = []

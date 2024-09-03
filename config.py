@@ -13,8 +13,6 @@ def load_env():
 
     os.environ.update(vars_dict)
 
-    update_config()
-
 # Получение текста из файла окружения по ключу
 def get_env(key):
     return os.getenv(key)
@@ -33,8 +31,9 @@ def get_config(*args, **kwards):
             return get_config(*args[1:], config=kwards["config"][args[0]])
     return False
         
-# Обновление файла конфигурации
-def update_config():
+
+# Загрузка файла конфигурации
+def load_config():
     global config_file
     with open(os.path.join("support", "config.json"), encoding='utf-8') as file:
         config_file = json.load(file)

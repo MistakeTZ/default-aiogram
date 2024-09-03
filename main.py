@@ -3,7 +3,7 @@ import sys
 
 from loader import dp, bot
 import utils
-# from utils import broadcast
+# from utils import repetition
 
 
 # Запуск бота
@@ -18,7 +18,7 @@ async def main() -> None:
 # Одновременное выполнение нескольких асинхронных функций
 async def multiple_tasks():
     
-    input_coroutines = [main()] #, broadcast.send_messages(bot)]
+    input_coroutines = [main()] #, repetition.send_messages()]
     res = await asyncio.gather(*input_coroutines, return_exceptions=True)
     return res
 
