@@ -3,7 +3,7 @@ from aiogram.filters import Filter
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.utils.markdown import hlink
 from aiogram.fsm.context import FSMContext
-from loader import dp, bot
+from loader import dp, bot, sender
 from datetime import datetime
 
 from os import path
@@ -12,19 +12,19 @@ from config import get_env, get_config
 import asyncio
 
 import utils.kb as kb
-from support.messages import send_message, get_text
 from states import UserState
 
 
 # Установка электронной почты
 @dp.message(UserState.email)
 async def email_check(msg: Message, state: FSMContext):
+    id = msg.from_user.id
     if not msg.entities:
-        await send_message(msg, "wrong_email")
+        await sender.send_message(id, "wrong_email")
         return
     email_entity = msg.entities[0]
     if email_entity.type != "email":
-        await send_message(msg, "wrong_email")
+        await sender.send_message(id, "wrong_email")
         return
     email = msg.text[email_entity.offset:email_entity.length]
 
@@ -32,10 +32,11 @@ async def email_check(msg: Message, state: FSMContext):
 # Установка времени
 @dp.message(UserState.time)
 async def time_check(msg: Message, state: FSMContext):
+    id = msg.from_user.id
     try:
         time = datetime.strptime(msg.text, "%H:%M")
     except:
-        await send_message(msg, "wrong_time")
+        await sender.send_message(id, "wrong_time")
         return
 
 
@@ -43,13 +44,14 @@ async def time_check(msg: Message, state: FSMContext):
 # Установка телефона
 @dp.message(UserState.phone)
 async def phone_check(msg: Message, state: FSMContext):
+    id = msg.from_user.id
     if msg.contact:
         phone = msg.contact.phone_number
     else:
         if is_valid_phone_number(msg.text):
             phone = msg.text
         else:
-            await send_message(msg, "wrong_phone")
+            await sender.send_message(id, "wrong_phone")
             return
 
 

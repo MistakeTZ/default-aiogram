@@ -1,13 +1,13 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
-from support.messages import get_text
 from datetime import datetime
 from config import get_config, get_env, update_config
+from loader import sender
 
 
 # Inline клавиатура с n количеством кнопок
 # Вызывается, как buttons(Текст первой кнопки, Дата первой кнопки, Текст второй кнопки...)
 def buttons(*args) -> InlineKeyboardMarkup:
-    in_buttons = [[InlineKeyboardButton(text=get_text(args[i * 2]), callback_data=args[i * 2 + 1] if len(args) >= (i + 1) * 2 else args[i * 2])]
+    in_buttons = [[InlineKeyboardButton(text=sender.get_text(args[i * 2]), callback_data=args[i * 2 + 1] if len(args) >= (i + 1) * 2 else args[i * 2])]
                for i in range((len(args) + 1) // 2)]
     return InlineKeyboardMarkup(inline_keyboard=in_buttons)
 
@@ -21,7 +21,7 @@ def two_buttons(name1: str, data1: str, name2: str, data2: str) -> InlineKeyboar
 
 # Reply клавиатура с одной кнопкой
 def reply(name) -> ReplyKeyboardMarkup:
-    in_buttons = [[KeyboardButton(text=get_text(name))]]
+    in_buttons = [[KeyboardButton(text=sender.get_text(name))]]
     return ReplyKeyboardMarkup(keyboard=in_buttons, one_time_keyboard=True, resize_keyboard=True)
 
 
@@ -57,5 +57,5 @@ def reply_table(width: int, height: int, one_time: bool = True, *args) -> ReplyK
 
 # Клавиатура телефона
 def phone() -> ReplyKeyboardMarkup:
-    in_buttons = [[KeyboardButton(text=get_text("send_contact"), request_contact=True)]]
+    in_buttons = [[KeyboardButton(text=sender.get_text("send_contact"), request_contact=True)]]
     return ReplyKeyboardMarkup(keyboard=in_buttons, one_time_keyboard=True, resize_keyboard=True)
