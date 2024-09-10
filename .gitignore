@@ -4,3 +4,4 @@
 base.db
 /.venv/
 /venv/
+database/db.sqlite3

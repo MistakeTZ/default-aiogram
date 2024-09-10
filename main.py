@@ -1,9 +1,6 @@
 import asyncio, logging
 import sys
-
-from loader import dp, bot
-import utils
-# from utils import repetition
+from database.model import DB
 
 
 # Запуск бота
@@ -28,6 +25,14 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
+
+    # Загрузка всех файлов и модулей
+    from loader import dp, bot
+
+    # Загрузка обработчика команд
+    import utils
+    # from utils import repetition
+
     try:
         loop.run_until_complete(multiple_tasks())
     except KeyboardInterrupt:
@@ -35,3 +40,8 @@ if __name__ == "__main__":
     except Exception as e:
         print(e)
     print("Exiting")
+    
+    try:
+        DB.unload_database()
+    except:
+        print("Database closing failed")
