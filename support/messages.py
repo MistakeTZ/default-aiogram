@@ -76,7 +76,7 @@ class MessageSender():
 
 
 # Загрузчик сообщений из CSV файла
-class JSONMessageSender(MessageSender):
+class CSVMessageSender(MessageSender):
 
     # Загрузка всех сообщений
     def load_messages(self, path_to_file: str = None):
