@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 from utils import kb
 from aiogram import Bot
 from loader import bot, sender

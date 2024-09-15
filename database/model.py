@@ -7,8 +7,8 @@ cur: Cursor
 
 
 class DB():
-    
-    def load_database(dbname = "db.sqlite3"):
+
+    def load_database(dbname="db.sqlite3"):
         global connection, cur
 
         try:
@@ -20,7 +20,6 @@ class DB():
         except:
             raise ValueError("Connection to database failed")
 
-
     def create_tables():
         cur.execute("""create table if not exists users (
                          id integer primary key autoincrement,
@@ -29,10 +28,9 @@ class DB():
                          )""")
         connection.commit()
 
-
     def select(by_value, field="telegram_id", table="users"):
-        return DB.get("select * from {} where {} = ?".format(table, field), [by_value], True)
-    
+        return DB.get("select * from {} where {} = ?".format(
+            table, field), [by_value], True)
 
     def get(prompt, values=[], one=False):
         try:
@@ -44,7 +42,6 @@ class DB():
         except Exception as e:
             print(e)
             return False
-        
 
     def get_dict(prompt, values=[], one=False):
         try:
@@ -57,7 +54,6 @@ class DB():
         except Exception as e:
             print(e)
             return False
-        
 
     def commit(prompt, values=[]):
         try:
@@ -67,7 +63,6 @@ class DB():
         except Exception as e:
             print(e)
             return False
-
 
     def unload_database():
         connection.close()

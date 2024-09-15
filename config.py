@@ -1,7 +1,8 @@
-import os
+from os import environ, path, getenv
 import json
 
 config_file = {}
+
 
 # Загрузка файла окружения
 def load_env():
@@ -11,15 +12,17 @@ def load_env():
             for line in fh.readlines() if not line.startswith('#')
         )
 
-    os.environ.update(vars_dict)
+    environ.update(vars_dict)
+
 
 # Получение текста из файла окружения по ключу
 def get_env(key):
-    return os.getenv(key)
+    return getenv(key)
+
 
 # Чтение из файла конфигурации
 def get_config(*args, **kwards):
-    if not "config" in kwards:
+    if "config" not in kwards:
         if args[0] in config_file:
             if len(args) == 1:
                 return config_file[args[0]]
@@ -30,10 +33,10 @@ def get_config(*args, **kwards):
                 return kwards["config"][args[0]]
             return get_config(*args[1:], config=kwards["config"][args[0]])
     return False
-        
+
 
 # Загрузка файла конфигурации
 def load_config():
     global config_file
-    with open(os.path.join("support", "config.json"), encoding='utf-8') as file:
+    with open(path.join("support", "config.json"), encoding='utf-8') as file:
         config_file = json.load(file)

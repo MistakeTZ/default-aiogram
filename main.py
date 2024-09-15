@@ -1,4 +1,5 @@
-import asyncio, logging
+import asyncio
+import logging
 import sys
 from database.model import DB
 
@@ -14,8 +15,9 @@ async def main() -> None:
 
 # Одновременное выполнение нескольких асинхронных функций
 async def multiple_tasks():
-    
-    input_coroutines = [main()] #, repetition.send_messages()]
+
+    input_coroutines = [main()]
+    # repetition.send_messages()
     res = await asyncio.gather(*input_coroutines, return_exceptions=True)
     return res
 
@@ -37,11 +39,6 @@ if __name__ == "__main__":
         loop.run_until_complete(multiple_tasks())
     except KeyboardInterrupt:
         pass
-    except Exception as e:
-        print(e)
-    print("Exiting")
-    
-    try:
-        DB.unload_database()
-    except:
-        print("Database closing failed")
+    logging.info("Exiting")
+
+    DB.unload_database()

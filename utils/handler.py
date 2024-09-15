@@ -7,7 +7,6 @@ from loader import dp, bot, sender
 from datetime import datetime
 
 from os import path
-import re
 from config import get_env, get_config
 import asyncio
 
@@ -18,13 +17,13 @@ from states import UserState
 # Установка электронной почты
 @dp.message(UserState.email)
 async def email_check(msg: Message, state: FSMContext):
-    id = msg.from_user.id
+    user_id = msg.from_user.id
     if not msg.entities:
-        await sender.send_message(id, "wrong_email")
+        await sender.send_message(user_id, "wrong_email")
         return
     email_entity = msg.entities[0]
     if email_entity.type != "email":
-        await sender.send_message(id, "wrong_email")
+        await sender.send_message(user_id, "wrong_email")
         return
     email = msg.text[email_entity.offset:email_entity.length]
 
@@ -32,48 +31,33 @@ async def email_check(msg: Message, state: FSMContext):
 # Установка времени
 @dp.message(UserState.time)
 async def time_check(msg: Message, state: FSMContext):
-    id = msg.from_user.id
+    user_id = msg.from_user.id
     try:
         time = datetime.strptime(msg.text, "%H:%M")
-    except:
-        await sender.send_message(id, "wrong_time")
+    except ValueError:
+        await sender.send_message(user_id, "wrong_time")
         return
 
 
-
 # Установка телефона
-@dp.message(UserState.phone)
+@dp.message(UserState.phone, F.contact)
 async def phone_check(msg: Message, state: FSMContext):
-    id = msg.from_user.id
-    if msg.contact:
-        phone = msg.contact.phone_number
-    else:
-        if is_valid_phone_number(msg.text):
-            phone = msg.text
-        else:
-            await sender.send_message(id, "wrong_phone")
-            return
-
-
-# Проверка телефона
-def is_valid_phone_number(phone):
-    pattern = r'^(?:8|\+7)\d{10}$'
-    cleaned_phone = re.sub(r'[\s\-\(\)]', '', phone)
-    return bool(re.match(pattern, cleaned_phone))
+    user_id = msg.from_user.id
+    phone = msg.contact.phone_number
 
 
 # Проверка на отсутствие состояний
 class NoStates(Filter):
-    async def __call__(self, message: Message, state: FSMContext):
+    async def __call__(self, msg: Message, state: FSMContext):
         stat = await state.get_state()
-        return stat == None
+        return stat is None
 
 
 # Сообщение без состояний
 @dp.message(NoStates())
 async def no_states_handler(msg: Message, state: FSMContext):
     pass
-        
+
 
 # Сообщение от бизнес-бота
 @dp.business_message()

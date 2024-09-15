@@ -16,19 +16,19 @@ from database.model import DB
 # Команда старта бота
 @dp.message(CommandStart())
 async def command_start_handler(msg: Message, state: FSMContext) -> None:
-    id = msg.from_user.id
-    if not DB.select(id):
-        print("New user:", id)
-        DB.commit("insert into users (telegram_id, registered) values (?, ?)", [id, datetime.now()])
+    user_id = msg.from_user.id
+    if not DB.select(user_id):
+        print("New user:", user_id)
+        DB.commit("insert into users (telegram_id, registered) values (?, ?)", 
+                  [user_id, datetime.now()])
 
-    await sender.send_message(id, "start")
+    await sender.send_message(user_id, "start")
     await state.set_state(UserState.default)
 
 
 # Команда меню
 @dp.message(Command("menu"))
 async def command_settings(msg: Message, state: FSMContext) -> None:
-    id = msg.from_user.id
-    await sender.send_message(id, "menu")
+    user_id = msg.from_user.id
+    await sender.send_message(user_id, "menu")
     await state.set_state(UserState.default)
-    
