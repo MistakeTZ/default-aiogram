@@ -22,7 +22,7 @@ async def command_start_handler(msg: Message, state: FSMContext) -> None:
         DB.commit("insert into users (telegram_id, registered) values (?, ?)", 
                   [user_id, datetime.now()])
 
-    await sender.send_message(user_id, "start")
+    await sender.message(user_id, "start")
     await state.set_state(UserState.default)
 
 
@@ -30,5 +30,5 @@ async def command_start_handler(msg: Message, state: FSMContext) -> None:
 @dp.message(Command("menu"))
 async def command_settings(msg: Message, state: FSMContext) -> None:
     user_id = msg.from_user.id
-    await sender.send_message(user_id, "menu")
+    await sender.message(user_id, "menu")
     await state.set_state(UserState.default)

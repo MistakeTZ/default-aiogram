@@ -1,7 +1,7 @@
 import abc
 from aiogram import Bot
 from aiogram.types import Message, FSInputFile
-from os import path
+from os.path import join, exists
 
 
 # Загрузчик сообщений
@@ -22,106 +22,57 @@ class MessageSender():
         return
 
     # Получение текста сообщения по ключу с указанием аргументов
-    def get_text(self, key: str, *args) -> str:
-
+    def text(self, key: str, *args) -> str:
         if key in self.messages:
             return self.messages[key].format(*args)
-
+        
         print(f"Key {key} not found")
         return self.messages["default"]
-
+    
     # Отправка сообщения пользователю
-    async def send_message(
-            self, chat_id: int, key: str, reply_markup=None, *args):
-        text = self.get_text(key, *args)
+    async def message(self, chat_id: int, key: str, reply_markup = None, *args):
+        text = self.text(key, *args)
         await self.bot.send_message(chat_id, text, reply_markup=reply_markup)
 
     # Изменение сообщения
-    async def edit_message(
-            self, msg: Message, key: str, reply_markup=None, *args):
-        text = self.get_text(key, *args)
+    async def edit_message(self, msg: Message, key: str, reply_markup = None, *args):
+        text = self.text(key, *args)
         await msg.edit_text(text, reply_markup=reply_markup)
 
-    # Отправка медиа пользователю
-    async def send_media(self, chat_id: int, key: str = None,
-                         reply_markup=None, *args, **kwargs):
-        # Добавление текста
+    # Открытие медиа
+    async def send_media(self, chat_id: int, media_type: str,
+                         media: str, key: str = None, reply_markup = None,
+                         path: str = None, name: str = None, *args):
         if key:
-            text = self.get_text(key, *args)
+            text = self.text(key, *args)
         else:
             text = None
+        
+        if name:
+            name = name + "." + media.split["."][1]
+        else:
+            name = media
 
-        # Отправка фото
-        if "photo" in kwargs:
-            if "photo_name" in kwargs:
-                photo_name = kwargs["photo_name"]
-            else:
-                photo_name = "photo"
-            photo = FSInputFile(path=kwargs["photo"], filename=photo_name)
+        if path:
+            path = join(path, media)
+        else:
+            path = join("support", "media", media)
 
-            await self.bot.send_photo(
-                chat_id, photo, caption=text, reply_markup=reply_markup)
+        file = FSInputFile(path=path, filename=name)
 
-        # Отправка аудио
-        if "audio" in kwargs:
-            if "audio_name" in kwargs:
-                audio_name = kwargs["audio_name"]
-            else:
-                audio_name = "audio"
-            audio = FSInputFile(path=kwargs["audio"], filename=audio_name)
-
-            await self.bot.send_audio(
-                chat_id, audio, caption=text, reply_markup=reply_markup)
-
-        # Отправка видео
-        if "video" in kwargs:
-            if "video_name" in kwargs:
-                video_name = kwargs["video_name"]
-            else:
-                video_name = "video"
-            video = FSInputFile(path=kwargs["video"], filename=video_name)
-
-            await self.bot.send_video(
-                chat_id, video, caption=text, reply_markup=reply_markup)
-
-
-# Загрузчик сообщений из CSV файла
-class CSVMessageSender(MessageSender):
-
-    # Загрузка всех сообщений
-    def load_messages(self, path_to_file: str = None):
-        import csv
-
-        # Файл не предопределен
-        if not path_to_file:
-            path_to_file = path.join("support", "messages.csv")
-
-        # Файл не найден
-        if not path.exists(path_to_file):
-            raise ValueError('Message file not found')
-
-        # Загрузка сообщений
-        with open(path_to_file, encoding='utf8') as file:
-            reader = csv.reader(file)
-
-            for message_pair in reader:
-                self.messages[message_pair[0]] = message_pair[1]
-
-        # Сообщение об успешной загрузке
-        if "succeful_load" in self.messages:
-            print(self.messages["succeful_load"])
-
-        return True
-
-    # Получение текста сообщения по ключу с указанием аргументов
-    def get_text(self, key: str, *args) -> str:
-        if key in self.messages:
-            return self.messages[key].replace(
-                "\\n", "\n").replace("\"\"", "\"").format(*args)
-
-        print(f"Key {key} not found")
-        return self.messages["default"]
-
+        match media_type:
+            case "photo":
+                await self.bot.send_photo(chat_id, file, caption=text,
+                                          reply_markup=reply_markup)
+            case "video":
+                await self.bot.send_video(chat_id, file, caption=text,
+                                          reply_markup=reply_markup)
+            case "audio":
+                await self.bot.send_audio(chat_id, file, caption=text,
+                                          reply_markup=reply_markup)
+            case "file":
+                await self.bot.send_document(chat_id, file, caption=text,
+                                             reply_markup=reply_markup)
 
 # Загрузчик сообщений из JSON файла
 class JSONMessageSender(MessageSender):
@@ -132,10 +83,10 @@ class JSONMessageSender(MessageSender):
 
         # Файл не предопределен
         if not path_to_file:
-            path_to_file = path.join("support", "messages.json")
+            path_to_file = join("support", "messages.json")
 
         # Файл не найден
-        if not path.exists(path_to_file):
+        if not exists(path_to_file):
             raise ValueError('Message file not found')
 
         # Загрузка сообщений

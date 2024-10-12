@@ -19,11 +19,11 @@ from states import UserState
 async def email_check(msg: Message, state: FSMContext):
     user_id = msg.from_user.id
     if not msg.entities:
-        await sender.send_message(user_id, "wrong_email")
+        await sender.message(user_id, "wrong_email")
         return
     email_entity = msg.entities[0]
     if email_entity.type != "email":
-        await sender.send_message(user_id, "wrong_email")
+        await sender.message(user_id, "wrong_email")
         return
     email = msg.text[email_entity.offset:email_entity.length]
 
