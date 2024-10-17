@@ -1,4 +1,5 @@
 from os import environ, path, getenv
+import logging
 import json
 
 config_file = {}
@@ -6,13 +7,18 @@ config_file = {}
 
 # Загрузка файла окружения
 def load_env():
-    with open('.env', 'r') as fh:
-        vars_dict = dict(
-            tuple(line.replace('\n', '').split('='))
-            for line in fh.readlines() if not line.startswith('#')
-        )
+    try:
+        logging.info("Loading environment variables")
+        with open('.env', 'r') as fh:
+            vars_dict = dict(
+                tuple(line.replace('\n', '').split('='))
+                for line in fh.readlines() if not line.startswith('#')
+            )
 
-    environ.update(vars_dict)
+        environ.update(vars_dict)
+    except Exception as e:
+        logging.error("Loading failed")
+        logging.error(e)
 
 
 # Получение текста из файла окружения по ключу
@@ -40,3 +46,15 @@ def load_config():
     global config_file
     with open(path.join("support", "config.json"), encoding='utf-8') as file:
         config_file = json.load(file)
+
+
+# Обновление файла конфигурации
+def update_config(field, value):
+    try:
+        logging.info("Updating config variable '" + field + "' with value " + str(value))
+        config_file[field] = value
+        with open(path.join("support", "config.json"), "w", encoding='utf-8') as file:
+            json.dump(config_file, file, indent=2, ensure_ascii=False)
+    except Exception as e:
+        logging.error("Updating failed")
+        logging.error(e)

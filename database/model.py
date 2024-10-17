@@ -48,7 +48,7 @@ class DB():
                 return cur.fetchall()
         except Exception as e:
             logging.warning("Prompt " + prompt + " with values " + str(values) + " failed")
-            print(e)
+            logging.warning(e)
             return False
 
     def get_dict(prompt, values=[], one=False):
@@ -61,7 +61,7 @@ class DB():
                 return [dict(zip(desc, res)) for res in cur.fetchall()]
         except Exception as e:
             logging.warning("Prompt " + prompt + " with values " + str(values) + " failed")
-            print(e)
+            logging.warning(e)
             return False
 
     def commit(prompt, values=[]):
@@ -71,7 +71,7 @@ class DB():
             return True
         except Exception as e:
             logging.warning("Prompt " + prompt + " with values " + str(values) + " failed")
-            print(e)
+            logging.warning(e)
             return False
 
     def commit_many(prompt, values=[]):
@@ -81,7 +81,7 @@ class DB():
             return True
         except Exception as e:
             logging.warning("Prompt " + prompt + " with values " + str(values) + " failed")
-            print(e)
+            logging.warning(e)
             return False
 
     def unload_database():
