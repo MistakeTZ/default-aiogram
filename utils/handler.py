@@ -35,7 +35,7 @@ async def time_check(msg: Message, state: FSMContext):
     try:
         time = datetime.strptime(msg.text, "%H:%M")
     except ValueError:
-        await sender.send_message(user_id, "wrong_time")
+        await sender.message(user_id, "wrong_time")
         return
 
 
