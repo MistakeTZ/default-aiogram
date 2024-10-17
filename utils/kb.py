@@ -18,50 +18,46 @@ def buttons(*args) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=in_buttons)
 
 
-# Inline клавиатура с 2 кнопками в 1 ряд
-def two_buttons(name1: str, data1: str, name2: str, data2: str
-                ) -> InlineKeyboardMarkup:
-    in_buttons = [[InlineKeyboardButton(text=name1, callback_data=data1),
-                   InlineKeyboardButton(text=name2, callback_data=data2)]]
-    return InlineKeyboardMarkup(inline_keyboard=in_buttons)
-
-
 # Reply клавиатура с одной кнопкой
 def reply(name) -> ReplyKeyboardMarkup:
-    in_buttons = [[KeyboardButton(text=sender.get_text(name))]]
+    in_buttons = [[KeyboardButton(text=sender.text(name))]]
     return ReplyKeyboardMarkup(keyboard=in_buttons,
                                one_time_keyboard=True, resize_keyboard=True)
 
 
 # Таблица inline кнопок
-def table(width: int, height: int, *args) -> InlineKeyboardMarkup:
+def table(width: int, *args) -> InlineKeyboardMarkup:
     in_buttons = []
     index = 0
 
-    for y in range(height):
+    while len(args) > index:
         in_buttons.append([])
 
-        for x in range(width):
-            in_buttons[y].append(
+        for _ in range(width):
+            in_buttons[-1].append(
                 InlineKeyboardButton(text=args[index],
                                      callback_data=args[index+1]))
             index += 2
+            if len(args) == index:
+                break
 
     return InlineKeyboardMarkup(inline_keyboard=in_buttons)
 
 
 # Таблица reply кнопок
-def reply_table(width: int, height: int, one_time: bool = True, *args
+def reply_table(width: int, one_time: bool = True, *args
                 ) -> ReplyKeyboardMarkup:
     in_buttons = []
     index = 0
 
-    for y in range(height):
+    while len(args) > index:
         in_buttons.append([])
 
-        for x in range(width):
-            in_buttons[y].append(KeyboardButton(text=args[index]))
+        for _ in range(width):
+            in_buttons[-1].append(KeyboardButton(text=args[index]))
             index += 1
+            if len(args) == index:
+                break
 
     return ReplyKeyboardMarkup(
         keyboard=in_buttons, one_time_keyboard=one_time, resize_keyboard=True)
@@ -70,6 +66,6 @@ def reply_table(width: int, height: int, one_time: bool = True, *args
 # Клавиатура телефона
 def phone() -> ReplyKeyboardMarkup:
     in_buttons = [[KeyboardButton(
-        text=sender.get_text("send_contact"), request_contact=True)]]
+        text=sender.text("send_contact"), request_contact=True)]]
     return ReplyKeyboardMarkup(keyboard=in_buttons,
                                one_time_keyboard=True, resize_keyboard=True)
