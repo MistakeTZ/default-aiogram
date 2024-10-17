@@ -37,6 +37,20 @@ class DB():
                             role varchar(15) not null default 'user',
                             registered timestamp
                             )""")
+
+        if not "repetitions" in tables:
+            logging.info("Creating table repetitions")
+            cur.execute("""create table repetitions (
+                            id integer primary key autoincrement,
+                            chat_id bigint not null,
+                            message_id int not null,
+                            button_text varchar(30) default '',
+                            button_link varchar(100) default '',
+                            time_to_send timestamp,
+                            confirmed bool default false,
+                            is_send bool default false
+                            )""")
+
         connection.commit()
 
     def get(prompt, values=[], one=False):

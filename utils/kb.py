@@ -69,3 +69,9 @@ def phone() -> ReplyKeyboardMarkup:
         text=sender.text("send_contact"), request_contact=True)]]
     return ReplyKeyboardMarkup(keyboard=in_buttons,
                                one_time_keyboard=True, resize_keyboard=True)
+
+
+# Кнопки ссылки
+def link_button(text, url) -> InlineKeyboardMarkup:
+    in_buttons = [[InlineKeyboardButton(text=text, url=url)]]
+    return InlineKeyboardMarkup(inline_keyboard=in_buttons)

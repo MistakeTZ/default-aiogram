@@ -8,3 +8,4 @@ class UserState(StatesGroup):
     email = State()
     phone = State()
     time = State()
+    mailing = State()
