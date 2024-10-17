@@ -17,10 +17,10 @@ from database.model import DB
 @dp.message(CommandStart())
 async def command_start_handler(msg: Message, state: FSMContext) -> None:
     user_id = msg.from_user.id
-    if not DB.select(user_id):
+    if not DB.get("select id from users where telegram_id = ?", [user_id]):
         print("New user:", user_id)
-        DB.commit("insert into users (telegram_id, registered) values (?, ?)", 
-                  [user_id, datetime.now()])
+        DB.commit("insert into users (telegram_id, name, username, registered) values (?, ?, ?, ?)", 
+                  [user_id, msg.from_user.full_name, msg.from_user.username, datetime.now()])
 
     await sender.message(user_id, "start")
     await state.set_state(UserState.default)

@@ -1,6 +1,7 @@
 import sqlite3
 from sqlite3 import Connection, Cursor
 from os import path
+import logging
 
 connection: Connection
 cur: Cursor
@@ -12,25 +13,31 @@ class DB():
         global connection, cur
 
         try:
+            logging.info("Connecting database")
             dbname = path.join("database", dbname)
             connection = sqlite3.connect(dbname)
             cur = connection.cursor()
 
-            print("Database connected")
+            logging.info("Database connected")
         except:
-            raise ValueError("Connection to database failed")
+            logging.error("Database connection failed")
+            raise ValueError("Database connection failed")
 
     def create_tables():
-        cur.execute("""create table if not exists users (
-                         id integer primary key autoincrement,
-                         telegram_id bigint not null,
-                         registered timestamp
-                         )""")
-        connection.commit()
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = [table[0] for table in cur.fetchall()]
 
-    def select(by_value, field="telegram_id", table="users"):
-        return DB.get("select * from {} where {} = ?".format(
-            table, field), [by_value], True)
+        if not "users" in tables:
+            logging.info("Creating table users")
+            cur.execute("""create table users (
+                            id integer primary key autoincrement,
+                            telegram_id bigint not null,
+                            name varchar(50) not null,
+                            username varchar(50),
+                            role varchar(15) not null default 'user',
+                            registered timestamp
+                            )""")
+        connection.commit()
 
     def get(prompt, values=[], one=False):
         try:
@@ -40,6 +47,7 @@ class DB():
             else:
                 return cur.fetchall()
         except Exception as e:
+            logging.warning("Prompt " + prompt + " with values " + str(values) + " failed")
             print(e)
             return False
 
@@ -52,6 +60,7 @@ class DB():
             else:
                 return [dict(zip(desc, res)) for res in cur.fetchall()]
         except Exception as e:
+            logging.warning("Prompt " + prompt + " with values " + str(values) + " failed")
             print(e)
             return False
 
@@ -61,8 +70,21 @@ class DB():
             connection.commit()
             return True
         except Exception as e:
+            logging.warning("Prompt " + prompt + " with values " + str(values) + " failed")
+            print(e)
+            return False
+
+    def commit_many(prompt, values=[]):
+        try:
+            cur.executemany(prompt, values)
+            connection.commit()
+            return True
+        except Exception as e:
+            logging.warning("Prompt " + prompt + " with values " + str(values) + " failed")
             print(e)
             return False
 
     def unload_database():
+        logging.info("Closing database")
         connection.close()
+        logging.info("Database closed")
