@@ -10,11 +10,17 @@ from loader import sender
 
 # Inline клавиатура с n количеством кнопок
 # Вызывается buttons(Текст 1-ой кнопки, Дата 1-ой кнопки, Текст 2-ой кнопки...)
-def buttons(*args) -> InlineKeyboardMarkup:
-    in_buttons = [[InlineKeyboardButton(
-        text=sender.get_text(args[i * 2]),
-        callback_data=args[i * 2 + 1] if len(args) >= (i + 1) * 2
-        else args[i * 2])] for i in range((len(args) + 1) // 2)]
+def buttons(is_keys: bool, *args) -> InlineKeyboardMarkup:
+    if is_keys:
+        in_buttons = [[InlineKeyboardButton(
+            text=sender.text(args[i * 2]),
+            callback_data=args[i * 2 + 1] if len(args) >= (i + 1) * 2
+            else args[i * 2])] for i in range((len(args) + 1) // 2)]
+    else:
+        in_buttons = [[InlineKeyboardButton(
+            text=args[i * 2],
+            callback_data=args[i * 2 + 1] if len(args) >= (i + 1) * 2
+            else args[i * 2])] for i in range((len(args) + 1) // 2)]
     return InlineKeyboardMarkup(inline_keyboard=in_buttons)
 
 
@@ -45,8 +51,18 @@ def table(width: int, *args) -> InlineKeyboardMarkup:
 
 
 # Таблица reply кнопок
-def reply_table(width: int, one_time: bool = True, *args
+def reply_table(width: int, *args, **kwards
                 ) -> ReplyKeyboardMarkup:
+    if "one_time" in kwards:
+        one_time = kwards["one_time"]
+    else:
+        one_time = True
+    
+    if "is_keys" in kwards:
+        is_keys = kwards["is_keys"]
+    else:
+        is_keys = True
+    
     in_buttons = []
     index = 0
 
@@ -54,7 +70,10 @@ def reply_table(width: int, one_time: bool = True, *args
         in_buttons.append([])
 
         for _ in range(width):
-            in_buttons[-1].append(KeyboardButton(text=args[index]))
+            if is_keys:
+                in_buttons[-1].append(KeyboardButton(text=sender.text(args[index])))
+            else:
+                in_buttons[-1].append(KeyboardButton(text=args[index]))
             index += 1
             if len(args) == index:
                 break
@@ -72,6 +91,6 @@ def phone() -> ReplyKeyboardMarkup:
 
 
 # Кнопки ссылки
-def link_button(text, url) -> InlineKeyboardMarkup:
+def link(text, url) -> InlineKeyboardMarkup:
     in_buttons = [[InlineKeyboardButton(text=text, url=url)]]
     return InlineKeyboardMarkup(inline_keyboard=in_buttons)
