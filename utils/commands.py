@@ -53,4 +53,4 @@ async def command_settings(msg: Message, state: FSMContext) -> None:
     if role[0] != "admin":
         await sender.message(user_id, "not_allowed")
         return
-    await sender.send_media(user_id, "database", None, file=path.join("database", "db.sqlite3"), file_name="db.sqlite3")
+    await sender.send_media(user_id, "file", "db.sqlite3", path="database", name="db")

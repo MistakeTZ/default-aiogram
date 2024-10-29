@@ -49,7 +49,7 @@ class MessageSender():
             text = None
         
         if name:
-            name = name + "." + media.split["."][1]
+            name = name + "." + media.split(".")[1]
         else:
             name = media
 
