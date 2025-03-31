@@ -1,8 +1,10 @@
 from os import environ, path, getenv
 import logging
 import json
+from datetime import timedelta
 
 config_file = {}
+time_difference: timedelta
 
 
 # Загрузка файла окружения
@@ -16,6 +18,8 @@ def load_env():
             )
 
         environ.update(vars_dict)
+
+        set_time_difference()
     except Exception as e:
         logging.error("Loading failed")
         logging.error(e)
@@ -24,6 +28,17 @@ def load_env():
 # Получение текста из файла окружения по ключу
 def get_env(key):
     return getenv(key)
+
+
+# Установка временного сдвига
+def set_time_difference():
+    global time_difference
+    try:
+        time_dif = int(get_env("time_difference"))
+    except:
+        time_dif = 0
+
+    time_difference = timedelta(hours=time_dif)
 
 
 # Чтение из файла конфигурации

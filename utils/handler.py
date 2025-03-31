@@ -7,7 +7,7 @@ from loader import dp, bot, sender
 from datetime import datetime
 
 from os import path
-from config import get_env, get_config
+from config import get_env, get_config, time_difference
 import asyncio
 
 import utils.kb as kb
@@ -77,7 +77,7 @@ async def mailing(msg: Message, state: FSMContext):
             DB.commit("insert into repetitions (chat_id, message_id) values (?, ?)", [user_id, msg.message_id])
             zapis_id = DB.get("select id from repetitions where message_id = ?", [msg.message_id], True)[0]
             await state.set_data({"status": "is_button", "id": zapis_id})
-            await sender.message(user_id, "want_to_add_button", kb.reply_table(2, True, *sender.text("yes_not").split()))
+            await sender.message(user_id, "want_to_add_button", kb.reply_table(2, *sender.text("yes_not").split(), is_keys=False))
 
         case "is_button":
             is_true = sender.text("yes_not").split().index(msg.text) == 0
@@ -102,15 +102,15 @@ async def mailing(msg: Message, state: FSMContext):
         case "time":
             try:
                 if msg.text == sender.text("now"):
-                    date = datetime.now()
+                    date = datetime.now() - time_difference
                 else:
-                    date = datetime.strptime(msg.text, "%d.%m.%Y %H:%M")
+                    date = datetime.strptime(msg.text, "%d.%m.%Y %H:%M") - time_difference
                 DB.commit("update repetitions set button_text = ?, button_link = ?, time_to_send = ? where id = ?",
                           [data["text"], data["link"], date, data["id"]])
                 await sender.message(user_id, "message_to_send")
 
                 message_id = DB.get("select message_id from repetitions where id = ?", [data["id"]], True)[0]
-                await bot.copy_message(user_id, user_id, message_id)
+                await bot.copy_message(user_id, user_id, message_id, reply_markup=kb.link(data["text"], data["link"]) if data["link"] else None)
                 await sender.message(user_id, "type_confirm", ReplyKeyboardRemove(), sender.text("confirm"))
                 await state.set_data({"status": "confirm", "id": data["id"]})
             except:

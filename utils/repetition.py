@@ -1,6 +1,7 @@
 import asyncio
 from utils import kb
 from loader import bot, sender
+from config import time_difference
 from database.model import DB
 from datetime import datetime
 
@@ -9,10 +10,12 @@ from datetime import datetime
 async def send_messages():
     await asyncio.sleep(5)
     while True:
-        messages_to_send = DB.get("select chat_id, message_id, button_text, button_link, time_to_send from repetitions where confirmed and not is_send")
+        messages_to_send = DB.get("select chat_id, message_id, \
+            button_text, button_link, time_to_send from repetitions \
+                where confirmed and not is_send and time_to_send < ?",
+                [datetime.now() + time_difference])
         if messages_to_send:
-            to_send_tasks = [send_msg(*msg) for msg in messages_to_send
-                            if datetime.strptime(msg[4].split(".")[0], "%Y-%m-%d %X") < datetime.now()]
+            to_send_tasks = [send_msg(*msg) for msg in messages_to_send]
             await asyncio.gather(*to_send_tasks)
 
         await asyncio.sleep(60)
@@ -24,7 +27,7 @@ async def send_msg(chat_id, message_id, button_text, button_link, time_to_send):
     for user in users:
         try:
             if button_link:
-                await bot.copy_message(user[0], chat_id, message_id, reply_markup=kb.link_button(button_text, button_link))
+                await bot.copy_message(user[0], chat_id, message_id, reply_markup=kb.link(button_text, button_link))
             else:
                 await bot.copy_message(user[0], chat_id, message_id)
         except:
