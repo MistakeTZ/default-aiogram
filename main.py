@@ -7,7 +7,9 @@ from database.model import DB
 # Запуск бота
 async def main() -> None:
     import handlers
+    from tasks.config import set_bot_commands
 
+    await set_bot_commands(bot)
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 

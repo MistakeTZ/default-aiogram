@@ -1,11 +1,12 @@
+from aiogram.types import BotCommand
 from os import path, getenv
 import logging
 import json
-from datetime import timedelta
+from datetime import timedelta, timezone
 from dotenv import load_dotenv
 
 config_file = {}
-time_difference: timedelta
+tz: timezone
 
 
 # Загрузка файла окружения
@@ -25,13 +26,13 @@ def get_env(key):
 
 # Установка временного сдвига
 def set_time_difference():
-    global time_difference
+    global tz
     try:
         time_dif = int(get_env("time_difference"))
     except:
         time_dif = 0
 
-    time_difference = timedelta(hours=time_dif)
+    tz = timezone(timedelta(hours=time_dif))
 
 
 # Чтение из файла конфигурации
@@ -66,3 +67,13 @@ def update_config(field, value):
     except Exception as e:
         logging.error("Updating failed")
         logging.error(e)
+
+
+# Установка команд бота
+async def set_bot_commands(bot):
+    command_list = get_config("commands")
+    commands = []
+    for command in command_list:
+        commands.append(BotCommand(command=command,
+                                    description=command_list[command]))
+    await bot.set_my_commands(commands)
