@@ -4,8 +4,8 @@ from aiogram.types import (
     ReplyKeyboardMarkup,
     KeyboardButton
 )
-from config import get_config, get_env
-from loader import sender
+from tasks.config import get_config, get_env
+from tasks.loader import sender
 from database.model import DB
 
 

@@ -3,15 +3,15 @@ from aiogram.filters import Filter
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.utils.markdown import hlink
 from aiogram.fsm.context import FSMContext
-from loader import dp, bot, sender
+from tasks.loader import dp, bot, sender
 from datetime import datetime
 
 from os import path
-from config import get_env, get_config, time_difference
+from tasks.config import get_env, get_config, time_difference
 import asyncio
 
-import utils.kb as kb
-from states import UserState
+import tasks.kb as kb
+from tasks.states import UserState
 from database.model import DB
 
 

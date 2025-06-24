@@ -1,7 +1,7 @@
 import asyncio
-from utils import kb
-from loader import bot, sender
-from config import time_difference
+from tasks import kb
+from tasks.loader import bot, sender
+from .config import time_difference
 from database.model import DB
 from datetime import datetime
 

@@ -1,14 +1,14 @@
 from aiogram import F
 from aiogram.filters import Filter, Command
 from database.model import DB
-from loader import sender, dp
+from tasks.loader import sender, dp
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.types.callback_query import CallbackQuery
 from aiogram.utils.markdown import hlink
-from states import UserState
-from config import get_config
-from . import kb
+from tasks.states import UserState
+from tasks.config import get_config
+from ..tasks import kb
 
 
 class AdminFilter(Filter):

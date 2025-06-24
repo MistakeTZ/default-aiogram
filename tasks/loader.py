@@ -1,7 +1,7 @@
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 
-from config import get_env, load_env, load_config
+from tasks.config import get_env, load_env, load_config
 from support.messages import MessageSender, JSONMessageSender
 from database.model import DB
 

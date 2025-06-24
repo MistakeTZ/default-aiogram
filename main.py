@@ -6,6 +6,7 @@ from database.model import DB
 
 # Запуск бота
 async def main() -> None:
+    import handlers
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
@@ -28,10 +29,10 @@ if __name__ == "__main__":
     asyncio.set_event_loop(loop)
 
     # Загрузка всех файлов и модулей
-    from loader import dp, bot
+    from tasks.loader import dp, bot
 
     # Загрузка обработчика команд
-    from utils import repetition
+    from tasks import repetition
 
     try:
         loop.run_until_complete(multiple_tasks())

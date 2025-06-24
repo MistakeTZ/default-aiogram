@@ -3,13 +3,13 @@ from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.markdown import hlink
-from loader import dp, bot, sender
+from tasks.loader import dp, bot, sender
 from os import path
 from datetime import datetime
 
-from config import get_env, get_config
-import utils.kb as kb
-from states import UserState
+from tasks.config import get_env, get_config
+import tasks.kb as kb
+from tasks.states import UserState
 from database.model import DB
 
 

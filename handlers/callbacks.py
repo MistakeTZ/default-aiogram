@@ -1,10 +1,10 @@
 from aiogram import F
 from aiogram.types.callback_query import CallbackQuery
 from aiogram.fsm.context import FSMContext
-from loader import dp, bot, sender
+from tasks.loader import dp, bot, sender
 
-from . import kb
-from states import UserState
+from ..tasks import kb
+from tasks.states import UserState
 
 
 # Возвращение в меню
