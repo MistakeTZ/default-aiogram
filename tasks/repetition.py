@@ -4,6 +4,7 @@ from tasks.loader import bot, sender
 from .config import tz
 from database.model import DB
 from datetime import datetime
+import handlers # Important
 
 
 # Отправка запланированных сообщений

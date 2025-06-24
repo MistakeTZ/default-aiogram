@@ -6,7 +6,6 @@ from database.model import DB
 
 # Запуск бота
 async def main() -> None:
-    import handlers
     from tasks.config import set_bot_commands
 
     await set_bot_commands(bot)
@@ -28,12 +27,12 @@ async def multiple_tasks():
 
 # Запуск и остановка бота
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
     # Загрузка всех файлов и модулей
-    from tasks.loader import dp, bot
+    from tasks.loader import dp, bot, sender
 
     try:
         loop.run_until_complete(multiple_tasks())
