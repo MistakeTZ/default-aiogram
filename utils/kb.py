@@ -6,6 +6,7 @@ from aiogram.types import (
 )
 from config import get_config, get_env
 from loader import sender
+from database.model import DB
 
 
 # Inline клавиатура с n количеством кнопок
@@ -94,3 +95,25 @@ def phone() -> ReplyKeyboardMarkup:
 def link(text, url) -> InlineKeyboardMarkup:
     in_buttons = [[InlineKeyboardButton(text=text, url=url)]]
     return InlineKeyboardMarkup(inline_keyboard=in_buttons)
+
+
+# Таблица пользователей
+def user_table(data, restricted=False):
+    users = DB.get_dict(f"select * from users where \
+                        restricted = ?", [restricted])
+    buttons = []
+
+    for i, user in enumerate(users):
+        if i % 2 == 0:
+            buttons.append([])
+
+        name = user["name"]
+        if user["username"]:
+            name += f" (@{user['username']})"
+        
+        buttons[-1].append(InlineKeyboardButton(text=name,
+                        callback_data=f"{data}_{user['id']}"))
+    buttons.append([InlineKeyboardButton(text=sender.text("admin"),
+                                         callback_data="admin")])
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)

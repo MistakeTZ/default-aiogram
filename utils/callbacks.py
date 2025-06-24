@@ -1,14 +1,9 @@
 from aiogram import F
 from aiogram.types.callback_query import CallbackQuery
 from aiogram.fsm.context import FSMContext
-from aiogram.utils.markdown import hlink
 from loader import dp, bot, sender
-import asyncio
-from os import path
 
-from config import get_env, get_config
-
-import utils.kb as kb
+from . import kb
 from states import UserState
 
 

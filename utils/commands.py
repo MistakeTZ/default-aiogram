@@ -24,33 +24,3 @@ async def command_start_handler(msg: Message, state: FSMContext) -> None:
 
     await sender.message(user_id, "start")
     await state.set_state(UserState.default)
-
-
-# Команда рассылки
-@dp.message(Command("mailing"))
-async def command_settings(msg: Message, state: FSMContext) -> None:
-    user_id = msg.from_user.id
-    role = DB.get("select role from users where telegram_id = ?", [user_id], True)
-    if not role:
-        await sender.message(user_id, "not_allowed")
-        return
-    if role[0] != "admin":
-        await sender.message(user_id, "not_allowed")
-        return
-
-    await sender.message(user_id, "write_message_for_mailing")
-    await state.set_state(UserState.mailing)
-    await state.set_data({"status": "begin"})
-
-
-# Команда получения БД
-@dp.message(Command("get"))
-async def command_settings(msg: Message, state: FSMContext) -> None:
-    user_id = msg.from_user.id
-    role = DB.get('select role from users where telegram_id = ?', [user_id], True)
-    if not role:
-        return
-    if role[0] != "admin":
-        await sender.message(user_id, "not_allowed")
-        return
-    await sender.send_media(user_id, "file", "db.sqlite3", path="database", name="db")

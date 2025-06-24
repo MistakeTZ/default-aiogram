@@ -35,6 +35,7 @@ class DB():
                             name varchar(50) not null,
                             username varchar(50),
                             role varchar(15) not null default 'user',
+                            restricted bool default false,
                             registered timestamp
                             )""")
 
