@@ -1,7 +1,8 @@
-from os import environ, path, getenv
+from os import path, getenv
 import logging
 import json
 from datetime import timedelta
+from dotenv import load_dotenv
 
 config_file = {}
 time_difference: timedelta
@@ -10,15 +11,7 @@ time_difference: timedelta
 # Загрузка файла окружения
 def load_env():
     try:
-        logging.info("Loading environment variables")
-        with open('.env', 'r') as fh:
-            vars_dict = dict(
-                tuple(line.replace('\n', '').split('='))
-                for line in fh.readlines() if not line.startswith('#')
-            )
-
-        environ.update(vars_dict)
-
+        load_dotenv()
         set_time_difference()
     except Exception as e:
         logging.error("Loading failed")
