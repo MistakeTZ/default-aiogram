@@ -18,6 +18,8 @@ async def main() -> None:
 
 # Одновременное выполнение нескольких асинхронных функций
 async def multiple_tasks():
+    # Загрузка обработчика команд
+    from tasks import repetition
 
     input_coroutines = [main(), repetition.send_messages()]
     res = await asyncio.gather(*input_coroutines)
@@ -32,9 +34,6 @@ if __name__ == "__main__":
 
     # Загрузка всех файлов и модулей
     from tasks.loader import dp, bot
-
-    # Загрузка обработчика команд
-    from tasks import repetition
 
     try:
         loop.run_until_complete(multiple_tasks())

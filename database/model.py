@@ -36,7 +36,7 @@ class DB():
                             username varchar(50),
                             role varchar(15) not null default 'user',
                             restricted bool default false,
-                            registered timestamp
+                            registered timestamp default current_timestamp
                             )""")
 
         if not "repetitions" in tables:

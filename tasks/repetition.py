@@ -1,7 +1,7 @@
 import asyncio
 from tasks import kb
 from tasks.loader import bot, sender
-from .config import time_difference
+from .config import tz
 from database.model import DB
 from datetime import datetime
 
@@ -13,7 +13,7 @@ async def send_messages():
         messages_to_send = DB.get("select chat_id, message_id, \
             button_text, button_link, time_to_send from repetitions \
                 where confirmed and not is_send and time_to_send < ?",
-                [datetime.now() + time_difference])
+                [datetime.now(tz=tz)])
         if messages_to_send:
             to_send_tasks = [send_msg(*msg) for msg in messages_to_send]
             await asyncio.gather(*to_send_tasks)
