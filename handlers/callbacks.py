@@ -3,7 +3,7 @@ from aiogram.types.callback_query import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from tasks.loader import dp, bot, sender
 
-from ..tasks import kb
+from tasks import kb
 from tasks.states import UserState
 
 

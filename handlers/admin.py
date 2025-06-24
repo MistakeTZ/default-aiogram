@@ -8,7 +8,7 @@ from aiogram.types.callback_query import CallbackQuery
 from aiogram.utils.markdown import hlink
 from tasks.states import UserState
 from tasks.config import get_config
-from ..tasks import kb
+from tasks import kb
 
 
 class AdminFilter(Filter):
