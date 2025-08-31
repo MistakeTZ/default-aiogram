@@ -2,7 +2,7 @@ import asyncio
 from tasks import kb
 from tasks.loader import bot, sender
 from .config import tz
-from database.model import DB
+from database.model import repetitions, users
 from datetime import datetime
 import handlers # Important
 
@@ -11,25 +11,26 @@ import handlers # Important
 async def send_messages():
     await asyncio.sleep(5)
     while True:
-        messages_to_send = DB.get("select chat_id, message_id, \
-            button_text, button_link, time_to_send from repetitions \
-                where confirmed and not is_send and time_to_send < ?",
-                [datetime.now(tz=tz)])
+        messages_to_send = repetitions.filter(confirmed=True, is_send=False, time_to_send__lt=datetime.now(tz=tz)).all()
+
         if messages_to_send:
-            to_send_tasks = [send_msg(*msg) for msg in messages_to_send]
+            to_send_tasks = [send_msg(msg) for msg in messages_to_send]
             await asyncio.gather(*to_send_tasks)
 
         await asyncio.sleep(60)
 
 
-async def send_msg(chat_id, message_id, button_text, button_link, time_to_send):
-    DB.commit("update repetitions set is_send = ? where chat_id = ? and message_id = ?", [True, chat_id, message_id])
-    users = DB.get("select telegram_id from users")
-    for user in users:
+async def send_msg(message):
+    repetitions.filter(chat_id=message["chat_id"], message_id=message["message_id"]).update(is_send=True)
+    all_users = users.all()
+
+    if message["button_text"] and message["button_link"]:
+        reply = kb.link(message["button_text"], message["button_link"])
+    else:
+        reply = None
+
+    for user in all_users:
         try:
-            if button_link:
-                await bot.copy_message(user[0], chat_id, message_id, reply_markup=kb.link(button_text, button_link))
-            else:
-                await bot.copy_message(user[0], chat_id, message_id)
+            await bot.copy_message(user["telegram_id"], message["chat_id"], message["message_id"], reply_markup=reply)
         except:
             continue

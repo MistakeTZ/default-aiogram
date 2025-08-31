@@ -1,6 +1,6 @@
 from aiogram import F
 from aiogram.filters import Filter, Command
-from database.model import DB
+from database.model import users
 from tasks.loader import sender, dp
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
@@ -8,8 +8,7 @@ from aiogram.fsm.context import FSMContext
 
 class Restricted(Filter):
     async def __call__(self, message):
-        user = DB.get("select id from users where telegram_id = ? and \
-                      restricted = 1", [message.from_user.id], True)
+        user = users.filter(telegram_id=message.from_user.id, restricted=1).one()
         return bool(user)
 
 

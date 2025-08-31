@@ -1,6 +1,6 @@
 from aiogram import F
 from aiogram.filters import Filter, Command
-from database.model import DB
+from database.model import users
 from tasks.loader import sender, dp
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
@@ -14,12 +14,11 @@ from tasks import kb
 class AdminFilter(Filter):
     async def __call__(self, message):
         user_id = message.from_user.id
-        role = DB.get("select role from users where telegram_id = ?",
-                      [user_id], True)
-        if not role:
+        user = users.filter(telegram_id=user_id).one()
+        if not user:
             await sender.message(user_id, "not_allowed")
             return False
-        if role[0] != "admin":
+        if user["role"] != "admin":
             await sender.message(user_id, "not_allowed")
             return False
         return True
@@ -60,9 +59,9 @@ async def mailing_handler(clbck: CallbackQuery, state: FSMContext) -> None:
 # Кнопка списка пользователей
 @dp.callback_query(F.data == "admin_list")
 async def mailing_handler(clbck: CallbackQuery, state: FSMContext) -> None:
-    users = DB.get_dict("select * from users")
+    all_users = users.all()
     message = ""
-    for user in users:
+    for user in all_users:
         message += hlink(user["name"], f"tg://user?id={user['telegram_id']}")
         if user["username"]:
             message += f" (@{user['username']})"
@@ -87,7 +86,7 @@ async def role_handler(clbck: CallbackQuery, state: FSMContext) -> None:
     else:
         role = data[2]
         user = data[3]
-        DB.commit("update users set role = ? where id = ?", [role, user])
+        users.filter(id=user).update(role=role)
         await sender.edit_message(clbck.message, f"role_updated", kb.buttons(True, "admin"))
 
 
@@ -102,6 +101,6 @@ async def ban_handler(clbck: CallbackQuery, state: FSMContext) -> None:
     else:
         user = data[2]
         is_ban = data[1] == "ban"
-        DB.commit("update users set restricted = ? where id = ?", [is_ban, user])
+        users.filter(id=user).update(restricted=is_ban)
         await sender.edit_message(clbck.message, f"user_banned" if is_ban
                             else "user_unbanned", kb.buttons(True, "admin"))

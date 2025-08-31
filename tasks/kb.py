@@ -6,7 +6,7 @@ from aiogram.types import (
 )
 from tasks.config import get_config, get_env
 from tasks.loader import sender
-from database.model import DB
+from database.model import users
 
 
 # Inline клавиатура с n количеством кнопок
@@ -100,11 +100,10 @@ def link(text, url) -> InlineKeyboardMarkup:
 
 # Таблица пользователей
 def user_table(data, restricted=False):
-    users = DB.get_dict(f"select * from users where \
-                        restricted = ?", [restricted])
+    all_users = users.filter(restricted=restricted).all()
     buttons = []
 
-    for i, user in enumerate(users):
+    for i, user in enumerate(all_users):
         if i % 2 == 0:
             buttons.append([])
 

@@ -12,7 +12,7 @@ import asyncio
 
 import tasks.kb as kb
 from tasks.states import UserState
-from database.model import DB
+from database.model import users, repetitions
 
 
 # Установка электронной почты
@@ -74,8 +74,8 @@ async def mailing(msg: Message, state: FSMContext):
 
     match data["status"]:
         case "begin":
-            DB.commit("insert into repetitions (chat_id, message_id) values (?, ?)", [user_id, msg.message_id])
-            zapis_id = DB.get("select id from repetitions where message_id = ?", [msg.message_id], True)[0]
+            repetitions.insert(chat_id=user_id, message_id=msg.message_id)
+            zapis_id = repetitions.filter(chat_id=user_id, message_id=msg.message_id).one()["id"]
             await state.set_data({"status": "is_button", "id": zapis_id})
             await sender.message(user_id, "want_to_add_button", kb.reply_table(2, *sender.text("yes_not").split("/"), is_keys=False))
 
@@ -105,11 +105,11 @@ async def mailing(msg: Message, state: FSMContext):
                     date = datetime.now(tz=tz)
                 else:
                     date = datetime.strptime(msg.text, "%d.%m.%Y %H:%M")
-                DB.commit("update repetitions set button_text = ?, button_link = ?, time_to_send = ? where id = ?",
-                          [data["text"], data["link"], date, data["id"]])
+                repetitions.filter(id=data["id"]).update(button_text=data["text"], button_link=data["link"], time_to_send=date)
+
                 await sender.message(user_id, "message_to_send")
 
-                message_id = DB.get("select message_id from repetitions where id = ?", [data["id"]], True)[0]
+                message_id = repetitions.get(id=data["id"])["message_id"]
                 await bot.copy_message(user_id, user_id, message_id, reply_markup=kb.link(data["text"], data["link"]) if data["link"] else None)
                 await sender.message(user_id, "type_confirm", ReplyKeyboardRemove(), sender.text("confirm"))
                 await state.set_data({"status": "confirm", "id": data["id"]})
@@ -120,8 +120,7 @@ async def mailing(msg: Message, state: FSMContext):
             await state.set_state(UserState.default)
             if msg.text.lower() == sender.text("confirm").lower():
                 await sender.message(user_id, "message_sended")
-                DB.commit("update repetitions set confirmed = ? where id = ?",
-                          [True, data["id"]])
+                repetitions.filter(id=data["id"]).update(confirmed=True)
             else:
                 await sender.message(user_id, "aborted")
 
@@ -130,10 +129,10 @@ async def mailing(msg: Message, state: FSMContext):
 @dp.message(F.document)
 async def set_databse(msg: Message, state: FSMContext):
     user_id = msg.from_user.id
-    role = DB.get('select role from users where telegram_id = ?', [user_id], True)
-    if not role:
+    user = users.filter(telegram_id=user_id).one()
+    if not user:
         return
-    if role[0] != "admin":
+    if user["role"] != "admin":
         return
     
     doc = msg.document

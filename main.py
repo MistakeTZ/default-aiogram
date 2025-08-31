@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import sys
-from database.model import DB
 
 
 # Запуск бота
@@ -39,5 +38,3 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     logging.info("Exiting")
-
-    DB.unload_database()
