@@ -1,18 +1,14 @@
-from aiogram import F
-from aiogram.filters import Filter
-from aiogram.types import Message, ReplyKeyboardRemove
-from aiogram.utils.markdown import hlink
-from aiogram.fsm.context import FSMContext
-from tasks.loader import dp, bot, sender
-from datetime import datetime
-
-from os import path
-from tasks.config import get_env, get_config, tz
 import asyncio
 
+from aiogram import F
+from aiogram.filters import Filter
+from aiogram.types import Message
+from aiogram.utils.markdown import hlink
+from aiogram.fsm.context import FSMContext
+
 import tasks.kb as kb
+from tasks.loader import dp, bot, sender, session, User
 from tasks.states import UserState
-from database.model import users, repetitions
 
 
 # Установка электронной почты
@@ -27,17 +23,6 @@ async def email_check(msg: Message, state: FSMContext):
         await sender.message(user_id, "wrong_email")
         return
     email = msg.text[email_entity.offset:email_entity.length]
-
-
-# Установка времени
-@dp.message(UserState.time)
-async def time_check(msg: Message, state: FSMContext):
-    user_id = msg.from_user.id
-    try:
-        time = datetime.strptime(msg.text, "%H:%M")
-    except ValueError:
-        await sender.message(user_id, "wrong_time")
-        return
 
 
 # Установка телефона
@@ -58,86 +43,3 @@ class NoStates(Filter):
 @dp.message(NoStates())
 async def no_states_handler(msg: Message, state: FSMContext):
     pass
-
-
-# Сообщение от бизнес-бота
-@dp.business_message()
-async def business_handler(msg: Message, state: FSMContext):
-    pass
-
-
-# Рассылка
-@dp.message(UserState.mailing)
-async def mailing(msg: Message, state: FSMContext):
-    user_id = msg.from_user.id
-    data = await state.get_data()
-
-    match data["status"]:
-        case "begin":
-            repetitions.insert(chat_id=user_id, message_id=msg.message_id)
-            zapis_id = repetitions.filter(chat_id=user_id, message_id=msg.message_id).one()["id"]
-            await state.set_data({"status": "is_button", "id": zapis_id})
-            await sender.message(user_id, "want_to_add_button", kb.reply_table(2, *sender.text("yes_not").split("/"), is_keys=False))
-
-        case "is_button":
-            is_true = sender.text("yes_not").split("/").index(msg.text) == 0
-            if is_true:
-                await state.set_data({"status": "link", "id": data["id"]})
-                await sender.message(user_id, "write_button_link", ReplyKeyboardRemove())
-            else:
-                await state.set_data({"status": "time", "id": data["id"], "link": "", "text": ""})
-                await sender.message(user_id, "write_time", kb.reply("now"))
-        
-        case "link":
-            await state.set_data({"status": "text", "id": data["id"], "link": msg.text})
-            await sender.message(user_id, "write_button_text")
-
-        case "text":
-            if len(msg.text) > 30:
-                await sender.message(user_id, "wrong_text")
-            else:
-                await state.set_data({"status": "time", "id": data["id"], "link": data["link"], "text": msg.text})
-                await sender.message(user_id, "write_time", kb.reply("now"))
-        
-        case "time":
-            try:
-                if msg.text == sender.text("now"):
-                    date = datetime.now(tz=tz)
-                else:
-                    date = datetime.strptime(msg.text, "%d.%m.%Y %H:%M")
-                repetitions.filter(id=data["id"]).update(button_text=data["text"], button_link=data["link"], time_to_send=date)
-
-                await sender.message(user_id, "message_to_send")
-
-                message_id = repetitions.get(id=data["id"])["message_id"]
-                await bot.copy_message(user_id, user_id, message_id, reply_markup=kb.link(data["text"], data["link"]) if data["link"] else None)
-                await sender.message(user_id, "type_confirm", ReplyKeyboardRemove(), sender.text("confirm"))
-                await state.set_data({"status": "confirm", "id": data["id"]})
-            except:
-                await sender.message(user_id, "wrong_date")
-
-        case "confirm":
-            await state.set_state(UserState.default)
-            if msg.text.lower() == sender.text("confirm").lower():
-                await sender.message(user_id, "message_sended")
-                repetitions.filter(id=data["id"]).update(confirmed=True)
-            else:
-                await sender.message(user_id, "aborted")
-
-
-# Установка базы данных
-@dp.message(F.document)
-async def set_databse(msg: Message, state: FSMContext):
-    user_id = msg.from_user.id
-    user = users.filter(telegram_id=user_id).one()
-    if not user:
-        return
-    if user["role"] != "admin":
-        return
-    
-    doc = msg.document
-    if doc.file_name.split(".")[-1] != "sqlite3":
-        return
-    
-    file = await bot.get_file(doc.file_id)
-    await bot.download_file(file.file_path, path.join("database", "db.sqlite3"))

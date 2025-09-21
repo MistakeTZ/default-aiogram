@@ -39,6 +39,28 @@ class MessageSender():
         text = self.text(key, *args)
         await msg.edit_text(text, reply_markup=reply_markup)
 
+    # Отправление кешированного медиа
+    async def send_cached_media(self, chat_id: int, media_type: str,
+                                media: str, key: str = None, reply_markup = None,
+                                *args):
+        if key:
+            text = self.text(key, *args)
+        else:
+            text = None
+
+        if media_type == "photo":
+            await self.bot.send_photo(chat_id, media, caption=text,
+                                      reply_markup=reply_markup)
+        elif media_type == "video":
+            await self.bot.send_video(chat_id, media, caption=text,
+                                      reply_markup=reply_markup)
+        elif media_type == "audio":
+            await self.bot.send_audio(chat_id, media, caption=text,
+                                      reply_markup=reply_markup)
+        elif media_type == "file":
+            await self.bot.send_document(chat_id, media, caption=text,
+                                         reply_markup=reply_markup)
+
     # Открытие медиа
     async def send_media(self, chat_id: int, media_type: str,
                          media: str, key: str = None, reply_markup = None,

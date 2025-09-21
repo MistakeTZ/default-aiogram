@@ -2,11 +2,16 @@ from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
-    KeyboardButton
+    KeyboardButton,
+    ReplyKeyboardRemove
 )
 from tasks.config import get_config, get_env
-from tasks.loader import sender
-from database.model import users
+from tasks.loader import sender, session, User
+
+
+# Удаление клавиатуры
+def remove() -> ReplyKeyboardRemove:
+    return ReplyKeyboardRemove()
 
 
 # Inline клавиатура с n количеством кнопок
@@ -55,15 +60,9 @@ def table(width: int, *args, **kwards) -> InlineKeyboardMarkup:
 # Таблица reply кнопок
 def reply_table(width: int, *args, **kwards
                 ) -> ReplyKeyboardMarkup:
-    if "one_time" in kwards:
-        one_time = kwards["one_time"]
-    else:
-        one_time = True
+    one_time = kwards.get("one_time", True)
     
-    if "is_keys" in kwards:
-        is_keys = kwards["is_keys"]
-    else:
-        is_keys = True
+    is_keys = kwards.get("is_keys", False)
     
     in_buttons = []
     index = 0
@@ -99,20 +98,20 @@ def link(text, url) -> InlineKeyboardMarkup:
 
 
 # Таблица пользователей
-def user_table(data, restricted=False):
-    all_users = users.filter(restricted=restricted).all()
+def user_table(data, restrict=False):
+    all_users = session.query(User).filter_by(restricted=restrict).all()
     buttons = []
 
     for i, user in enumerate(all_users):
         if i % 2 == 0:
             buttons.append([])
 
-        name = user["name"]
-        if user["username"]:
-            name += f" (@{user['username']})"
-        
+        name = user.name
+        if user.username:
+            name += f" (@{user.username})"
+
         buttons[-1].append(InlineKeyboardButton(text=name,
-                        callback_data=f"{data}_{user['id']}"))
+                        callback_data=f"{data}_{user.id}"))
     buttons.append([InlineKeyboardButton(text=sender.text("admin"),
                                          callback_data="admin")])
 

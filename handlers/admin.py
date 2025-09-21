@@ -1,24 +1,27 @@
+from datetime import datetime
+from os import path
+
 from aiogram import F
 from aiogram.filters import Filter, Command
-from database.model import users
-from tasks.loader import sender, dp
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.types.callback_query import CallbackQuery
 from aiogram.utils.markdown import hlink
-from tasks.states import UserState
-from tasks.config import get_config
+
 from tasks import kb
+from tasks.config import get_config, tz
+from tasks.loader import sender, dp, User, session, bot, Repetition
+from tasks.states import UserState
 
 
 class AdminFilter(Filter):
     async def __call__(self, message):
         user_id = message.from_user.id
-        user = users.filter(telegram_id=user_id).one()
+        user = session.query(User).filter_by(telegram_id=user_id).one_or_none()
         if not user:
             await sender.message(user_id, "not_allowed")
             return False
-        if user["role"] != "admin":
+        if user.role != "admin":
             await sender.message(user_id, "not_allowed")
             return False
         return True
@@ -59,13 +62,13 @@ async def mailing_handler(clbck: CallbackQuery, state: FSMContext) -> None:
 # Кнопка списка пользователей
 @dp.callback_query(F.data == "admin_list")
 async def mailing_handler(clbck: CallbackQuery, state: FSMContext) -> None:
-    all_users = users.all()
+    all_users = session.query(User).all()
     message = ""
     for user in all_users:
-        message += hlink(user["name"], f"tg://user?id={user['telegram_id']}")
+        message += hlink(user.name, f"tg://user?id={user.telegram_id}")
         if user["username"]:
-            message += f" (@{user['username']})"
-        message += f" - {user['role']}"
+            message += f" (@{user.username})"
+        message += f" - {user.role}"
         message += "\n"
     
     await sender.edit_message(clbck.message, "users", kb.buttons(True, "admin"), message)
@@ -86,7 +89,9 @@ async def role_handler(clbck: CallbackQuery, state: FSMContext) -> None:
     else:
         role = data[2]
         user = data[3]
-        users.filter(id=user).update(role=role)
+        user_ = session.query(User).filter_by(id=user).one()
+        user_.role = role
+        session.commit()
         await sender.edit_message(clbck.message, f"role_updated", kb.buttons(True, "admin"))
 
 
@@ -101,6 +106,95 @@ async def ban_handler(clbck: CallbackQuery, state: FSMContext) -> None:
     else:
         user = data[2]
         is_ban = data[1] == "ban"
-        users.filter(id=user).update(restricted=is_ban)
+        user_ = session.query(User).filter_by(id=user).one()
+        user_.restricted = is_ban
+        session.commit()
         await sender.edit_message(clbck.message, f"user_banned" if is_ban
                             else "user_unbanned", kb.buttons(True, "admin"))
+
+
+# Рассылка
+@dp.message(UserState.mailing)
+async def mailing(msg: Message, state: FSMContext):
+    user_id = msg.from_user.id
+    data = await state.get_data()
+
+    match data["status"]:
+        case "begin":
+            repetition = Repetition(chat_id=user_id, message_id=msg.message_id)
+            session.add(repetition)
+            session.commit()
+            zapis_id = session.query(Repetition).order_by(Repetition.id.desc()).first().id
+
+            await state.set_data({"status": "is_button", "id": zapis_id})
+            await sender.message(user_id, "want_to_add_button", kb.reply_table(2, *sender.text("yes_not").split("/"), is_keys=False))
+
+        case "is_button":
+            is_true = sender.text("yes_not").split("/").index(msg.text) == 0
+            if is_true:
+                await state.set_data({"status": "link", "id": data["id"]})
+                await sender.message(user_id, "write_button_link", kb.remove())
+            else:
+                await state.set_data({"status": "time", "id": data["id"], "link": "", "text": ""})
+                await sender.message(user_id, "write_time", kb.reply("now"))
+        
+        case "link":
+            await state.set_data({"status": "text", "id": data["id"], "link": msg.text})
+            await sender.message(user_id, "write_button_text")
+
+        case "text":
+            if len(msg.text) > 30:
+                await sender.message(user_id, "wrong_text")
+            else:
+                await state.set_data({"status": "time", "id": data["id"], "link": data["link"], "text": msg.text})
+                await sender.message(user_id, "write_time", kb.reply("now"))
+        
+        case "time":
+            try:
+                if msg.text == sender.text("now"):
+                    date = datetime.now(tz=tz)
+                else:
+                    date = datetime.strptime(msg.text, "%d.%m.%Y %H:%M")
+                rep = session.query(Repetition).filter_by(id=data["id"]).first()
+                rep.button_text=data["text"]
+                rep.button_link=data["link"]
+                rep.time_to_send=date
+                session.commit()
+
+                await sender.message(user_id, "message_to_send")
+
+                message_id = rep.message_id
+                await bot.copy_message(user_id, user_id, message_id, reply_markup=kb.link(data["text"], data["link"]) if data["link"] else None)
+                await sender.message(user_id, "type_confirm", kb.remove(), sender.text("confirm"))
+                await state.set_data({"status": "confirm", "id": data["id"]})
+            except Exception as e:
+                print(e)
+                await sender.message(user_id, "wrong_date")
+
+        case "confirm":
+            await state.set_state(UserState.default)
+            if msg.text.lower() == sender.text("confirm").lower():
+                await sender.message(user_id, "message_sended")
+                rep = session.query(Repetition).filter_by(id=data["id"]).first()
+                rep.confirmed = True
+                session.commit()
+            else:
+                await sender.message(user_id, "aborted")
+
+
+# Установка базы данных
+@dp.message(F.document, AdminFilter())
+async def set_databse(msg: Message, state: FSMContext):
+    user_id = msg.from_user.id
+    user = session.query(User).filter_by(telegram_id=user_id).one()
+    if not user:
+        return
+    if user.role != "admin":
+        return
+    
+    doc = msg.document
+    if doc.file_name.split(".")[-1] != "sqlite3":
+        return
+    
+    file = await bot.get_file(doc.file_id)
+    await bot.download_file(file.file_path, path.join("database", "db.sqlite3"))

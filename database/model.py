@@ -1,50 +1,43 @@
-from sqliteorm import SQLiteORM
-from sqliteorm.models.table import Table
-from sqliteorm.models.fileds import IntegerColumn, TextColumn, DateTimeColumn, BooleanColumn
-from os import path
+from sqlalchemy import (
+    create_engine, Column, Integer, String, Boolean, DateTime, func
+)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+# Base model
+Base = declarative_base()
 
 
-# Initialize DB
-db: SQLiteORM
-users: Table
-repetitions: Table
+# Users model
+class User(Base):
+    __tablename__ = "users"
 
-# Define a model
-class Users(Table):
-    id = IntegerColumn("id")
-    telegram_id = IntegerColumn("telegram_id", is_null=False)
-    name = TextColumn("name", is_null=False)
-    username = TextColumn("username")
-    role = TextColumn("role", default_value="user", is_null=False)
-    restricted = BooleanColumn("restricted", default_value=False)
-    registered = DateTimeColumn("registered", default_value="current_timestamp")
-
-    def __init__(self, db):
-        super().__init__(db, "users")
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    telegram_id = Column(Integer, nullable=False, unique=True)
+    name = Column(String, nullable=False)
+    username = Column(String)
+    role = Column(String, nullable=False, default="user")
+    restricted = Column(Boolean, nullable=False, default=False)
+    registered = Column(DateTime, nullable=False, server_default=func.current_timestamp())
 
 
-class Repetitions(Table):
-    id = IntegerColumn("id")
-    chat_id = IntegerColumn("chat_id", is_null=False)
-    message_id = IntegerColumn("message_id", is_null=False)
-    button_text = TextColumn("button_text", default_value="", is_null=False)
-    button_link = TextColumn("button_link", default_value="", is_null=False)
-    time_to_send = DateTimeColumn("time_to_send", is_null=False)
-    confirmed = BooleanColumn("confirmed", default_value=False)
-    is_send = BooleanColumn("is_send", default_value=False)
+# Repetitions model
+class Repetition(Base):
+    __tablename__ = "repetitions"
 
-    def __init__(self, db):
-        super().__init__(db, "repetitions")
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    chat_id = Column(Integer, nullable=False)
+    message_id = Column(Integer, nullable=False)
+    button_text = Column(String, nullable=False, default="")
+    button_link = Column(String, nullable=False, default="")
+    time_to_send = Column(DateTime, nullable=True, default=None)
+    confirmed = Column(Boolean, nullable=False, default=False)
+    is_send = Column(Boolean, nullable=False, default=False)
 
 
-def init_db():
-    global db, users, repetitions
-
-    db = SQLiteORM(path.join("database", "db.sqlite3"))
-
-    # Register table
-    users = Users(db)
-    db.add_table(users)
-
-    repetitions = Repetitions(db)
-    db.add_table(repetitions)
+# Init DB
+def init_db(db_path="database/db.sqlite3"):
+    engine = create_engine(f"sqlite:///{db_path}", echo=False)
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    return Session()
