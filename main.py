@@ -31,7 +31,7 @@ if __name__ == "__main__":
     asyncio.set_event_loop(loop)
 
     # Загрузка всех файлов и модулей
-    from tasks.loader import dp, bot, sender
+    from tasks.loader import dp, bot
 
     try:
         loop.run_until_complete(multiple_tasks())

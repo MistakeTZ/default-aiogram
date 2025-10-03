@@ -1,10 +1,11 @@
 import asyncio
 from tasks import kb
-from tasks.loader import bot, sender, Repetition, User, session
+from tasks.loader import bot, session
+from database.model import User, Repetition
 from sqlalchemy import select, update
 from .config import tz
 from datetime import datetime
-import handlers # Important
+import handlers # noqa F401
 
 
 # Отправка запланированных сообщений
@@ -22,7 +23,9 @@ async def send_messages():
         messages_to_send = result.scalars().all()
 
         if messages_to_send:
-            to_send_tasks = [send_msg(session, msg) for msg in messages_to_send]
+            to_send_tasks = [
+                send_msg(session, msg) for msg in messages_to_send
+            ]
             await asyncio.gather(*to_send_tasks)
 
         await asyncio.sleep(60)
@@ -34,7 +37,7 @@ async def send_msg(session, message: Repetition):
         update(Repetition)
         .where(Repetition.chat_id == message.chat_id)
         .where(Repetition.message_id == message.message_id)
-        .values(is_send=True)
+        .values(is_send=True),
     )
     session.commit()
 

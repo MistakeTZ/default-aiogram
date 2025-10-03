@@ -3,7 +3,7 @@ from aiogram.client.default import DefaultBotProperties
 
 from tasks.config import get_env, load_env, load_config
 from support.messages import MessageSender, JSONMessageSender
-from database.model import *
+from database.model import init_db
 
 
 # Загрузка файла окружения и файла конфигурации

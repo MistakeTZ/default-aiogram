@@ -1,6 +1,6 @@
 # Инициализация обработчиков событий
-from . import ban
-from . import commands
-from . import admin
-from . import callbacks
-from . import handler
+from . import ban # noqa F401
+from . import commands # noqa F401
+from . import admin # noqa F401
+from . import callbacks # noqa F401
+from . import handler # noqa F401
