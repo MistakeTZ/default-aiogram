@@ -1,34 +1,35 @@
 from aiogram.types import BotCommand
-from os import path, getenv
+from os import path
 import logging
 import json
 from datetime import timedelta, timezone
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-config_file = {}
-tz: timezone
+
+class Config(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env")
+
+    token: str
+    time_difference: int = 0
 
 
 # Загрузка файла окружения
 def load_env():
+    global settings
+
     try:
-        load_dotenv()
+        settings = Config()
         set_time_difference()
     except Exception as e:
         logging.error("Loading failed")
         logging.error(e)
 
 
-# Получение текста из файла окружения по ключу
-def get_env(key, default=None):
-    return getenv(key, default)
-
-
 # Установка временного сдвига
 def set_time_difference():
     global tz
     try:
-        time_dif = int(get_env("time_difference", 0))
+        time_dif = int(settings.time_difference)
     except ValueError:
         time_dif = 0
 
@@ -83,3 +84,8 @@ async def set_bot_commands(bot):
             description=command_list[command],
         ))
     await bot.set_my_commands(commands)
+
+
+config_file = {}
+tz: timezone
+settings: Config = None
