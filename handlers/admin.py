@@ -185,7 +185,9 @@ async def mailing(msg: Message, state: FSMContext):
                         "text": "",
                     },
                 )
-                await sender.message(user_id, "write_time", kb.reply("now"))
+                await sender.message(user_id, "write_time", kb.reply(
+                    sender.text("now"),
+                ))
 
         case "link":
             await state.set_data(
@@ -205,7 +207,9 @@ async def mailing(msg: Message, state: FSMContext):
                         "text": msg.text,
                     },
                 )
-                await sender.message(user_id, "write_time", kb.reply("now"))
+                await sender.message(
+                    user_id, "write_time", kb.reply(sender.text("now")),
+                )
 
         case "time":
             try:

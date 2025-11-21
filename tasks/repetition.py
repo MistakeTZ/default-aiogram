@@ -1,11 +1,14 @@
 import asyncio
+import logging
+
+from datetime import datetime
+from sqlalchemy import update
+
+from .config import tz
+from database.model import User, Repetition
+import handlers # noqa F401
 from tasks import kb
 from tasks.loader import bot, session
-from database.model import User, Repetition
-from sqlalchemy import select, update
-from .config import tz
-from datetime import datetime
-import handlers # noqa F401
 
 
 # Отправка запланированных сообщений
@@ -13,14 +16,11 @@ async def send_messages():
     await asyncio.sleep(5)
 
     while True:
-        stmt = (
-            select(Repetition)
-            .where(Repetition.confirmed.is_(True))
-            .where(Repetition.is_send.is_(False))
-            .where(Repetition.time_to_send < datetime.now(tz=tz))
-        )
-        result = session.execute(stmt)
-        messages_to_send = result.scalars().all()
+        messages_to_send = session.query(Repetition).filter(
+            Repetition.confirmed == True,
+            Repetition.is_send == False,
+            Repetition.time_to_send < datetime.now(tz=tz),
+        ).all()
 
         if messages_to_send:
             to_send_tasks = [
@@ -42,8 +42,7 @@ async def send_msg(session, message: Repetition):
     session.commit()
 
     # fetch all users
-    result = session.execute(select(User))
-    all_users = result.scalars().all()
+    all_users = session.filter(User).all()
 
     # build reply
     if message.button_text and message.button_link:
@@ -59,5 +58,7 @@ async def send_msg(session, message: Repetition):
                 message.message_id,
                 reply_markup=reply,
             )
-        except Exception:
-            continue
+        except Exception as e:
+            logging.warning(
+                f"Failed to send message to {user.telegram_id}: {e}",
+            )
