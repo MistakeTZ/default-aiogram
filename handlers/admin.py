@@ -2,16 +2,16 @@ from datetime import datetime
 from os import path
 
 from aiogram import F
-from aiogram.filters import Filter, Command
-from aiogram.types import Message
+from aiogram.filters import Command, Filter
 from aiogram.fsm.context import FSMContext
+from aiogram.types import Message
 from aiogram.types.callback_query import CallbackQuery
 from aiogram.utils.markdown import hlink
 
+from database.model import Repetition, User
 from tasks import kb
 from tasks.config import get_config, tz
-from tasks.loader import sender, dp, session, bot
-from database.model import User, Repetition
+from tasks.loader import bot, dp, sender, session
 from tasks.states import UserState
 
 
@@ -61,7 +61,11 @@ async def mailing_handler(clbck: CallbackQuery, state: FSMContext) -> None:
 async def db_handler(clbck: CallbackQuery, state: FSMContext) -> None:
     user_id = clbck.from_user.id
     await sender.send_media(
-        user_id, "document", "db.sqlite3", path="database", name="db",
+        user_id,
+        "document",
+        "db.sqlite3",
+        path="database",
+        name="db",
     )
 
 
@@ -72,7 +76,7 @@ async def list_handler(clbck: CallbackQuery, state: FSMContext) -> None:
     message = ""
     for user in all_users:
         message += hlink(user.name, f"tg://user?id={user.telegram_id}")
-        if user["username"]:
+        if user.username:
             message += f" (@{user.username})"
         message += f" - {user.role}"
         message += "\n"
@@ -90,16 +94,20 @@ async def list_handler(clbck: CallbackQuery, state: FSMContext) -> None:
 async def role_handler(clbck: CallbackQuery, state: FSMContext) -> None:
     data = clbck.data.split("_")
     if len(data) == 2:
-        await sender.edit_message(clbck.message, "choose_role", kb.table(
-            2,
-            "new_admin",
-            "admin_role_admin",
-            "new_user",
-            "admin_role_user",
-            "admin",
-            "admin",
-            is_keys=True,
-        ))
+        await sender.edit_message(
+            clbck.message,
+            "choose_role",
+            kb.table(
+                2,
+                "new_admin",
+                "admin_role_admin",
+                "new_user",
+                "admin_role_user",
+                "admin",
+                "admin",
+                is_keys=True,
+            ),
+        )
         return
     elif len(data) == 3:
         await sender.edit_message(
@@ -158,16 +166,23 @@ async def mailing(msg: Message, state: FSMContext):
             )
             session.add(repetition)
             session.commit()
-            zapis_id = session.query(Repetition).order_by(
-                Repetition.id.desc(),
-            ).first().id
+            zapis_id = (
+                session.query(Repetition)
+                .order_by(
+                    Repetition.id.desc(),
+                )
+                .first()
+                .id
+            )
 
             await state.set_data({"status": "is_button", "id": zapis_id})
             await sender.message(
                 user_id,
                 "want_to_add_button",
                 kb.reply_table(
-                    2, *sender.text("yes_not").split("/"), is_keys=False,
+                    2,
+                    *sender.text("yes_not").split("/"),
+                    is_keys=False,
                 ),
             )
 
@@ -185,9 +200,13 @@ async def mailing(msg: Message, state: FSMContext):
                         "text": "",
                     },
                 )
-                await sender.message(user_id, "write_time", kb.reply(
-                    sender.text("now"),
-                ))
+                await sender.message(
+                    user_id,
+                    "write_time",
+                    kb.reply(
+                        sender.text("now"),
+                    ),
+                )
 
         case "link":
             await state.set_data(
@@ -208,7 +227,9 @@ async def mailing(msg: Message, state: FSMContext):
                     },
                 )
                 await sender.message(
-                    user_id, "write_time", kb.reply(sender.text("now")),
+                    user_id,
+                    "write_time",
+                    kb.reply(sender.text("now")),
                 )
 
         case "time":
@@ -217,9 +238,13 @@ async def mailing(msg: Message, state: FSMContext):
                     date = datetime.now(tz=tz)
                 else:
                     date = datetime.strptime(msg.text, "%d.%m.%Y %H:%M")
-                rep = session.query(Repetition).filter_by(
-                    id=data["id"],
-                ).first()
+                rep = (
+                    session.query(Repetition)
+                    .filter_by(
+                        id=data["id"],
+                    )
+                    .first()
+                )
                 rep.button_text = data["text"]
                 rep.button_link = data["link"]
                 rep.time_to_send = date
@@ -232,10 +257,14 @@ async def mailing(msg: Message, state: FSMContext):
                     user_id,
                     user_id,
                     message_id,
-                    reply_markup=kb.link(
-                        data["text"],
-                        data["link"],
-                    ) if data["link"] else None,
+                    reply_markup=(
+                        kb.link(
+                            data["text"],
+                            data["link"],
+                        )
+                        if data["link"]
+                        else None
+                    ),
                 )
                 await sender.message(
                     user_id,
@@ -252,9 +281,13 @@ async def mailing(msg: Message, state: FSMContext):
             await state.set_state(UserState.default)
             if msg.text.lower() == sender.text("confirm").lower():
                 await sender.message(user_id, "message_sended")
-                rep = session.query(Repetition).filter_by(
-                    id=data["id"],
-                ).first()
+                rep = (
+                    session.query(Repetition)
+                    .filter_by(
+                        id=data["id"],
+                    )
+                    .first()
+                )
                 rep.confirmed = True
                 session.commit()
             else:
