@@ -1,8 +1,9 @@
-from aiogram.types import BotCommand
-from os import path
-import logging
 import json
+import logging
 from datetime import timedelta, timezone
+from os import path
+
+from aiogram.types import BotCommand
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -66,7 +67,9 @@ def update_config(field, value):
         )
         config_file[field] = value
         with open(
-            path.join("support", "config.json"), "w", encoding="utf-8",
+            path.join("support", "config.json"),
+            "w",
+            encoding="utf-8",
         ) as file:
             json.dump(config_file, file, indent=2, ensure_ascii=False)
     except Exception as e:
@@ -79,10 +82,12 @@ async def set_bot_commands(bot):
     command_list = get_config("commands")
     commands = []
     for command in command_list:
-        commands.append(BotCommand(
-            command=command,
-            description=command_list[command],
-        ))
+        commands.append(
+            BotCommand(
+                command=command,
+                description=command_list[command],
+            )
+        )
     await bot.set_my_commands(commands)
 
 

@@ -1,17 +1,20 @@
 from aiogram.filters import Filter
-from tasks.loader import sender, dp, session
-from database.model import User
-from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
+from aiogram.types import Message
 from sqlalchemy import exists
+
+from database.model import User
+from tasks.loader import dp, sender, session
 
 
 class Restricted(Filter):
     async def __call__(self, message):
-        return session.query(exists().where(
-            User.telegram_id == message.from_user.id,
-            User.restricted,
-        )).scalar()
+        return session.query(
+            exists().where(
+                User.telegram_id == message.from_user.id,
+                User.restricted,
+            )
+        ).scalar()
 
 
 # Команда бана

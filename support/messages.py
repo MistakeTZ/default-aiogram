@@ -1,11 +1,12 @@
 import abc
+from os.path import exists, join
+
 from aiogram import Bot
-from aiogram.types import Message, FSInputFile
-from os.path import join, exists
+from aiogram.types import FSInputFile, Message
 
 
 # Загрузчик сообщений
-class MessageSender():
+class MessageSender:
 
     # Все доступные сообщения
     messages = {}
@@ -29,30 +30,42 @@ class MessageSender():
         return self.messages["default"]
 
     # Отправка сообщения пользователю
-    async def message(self, chat_id: int, key: str, reply_markup=None, *args):
+    async def message(
+        self,
+        chat_id: int,
+        key: str,
+        reply_markup=None,
+        *args,
+        **kwargs,
+    ):
         text = self.text(key, *args)
-        await self.bot.send_message(chat_id, text, reply_markup=reply_markup)
+        await self.bot.send_message(
+            chat_id,
+            text,
+            reply_markup=reply_markup,
+            **kwargs,
+        )
 
     # Изменение сообщения
     async def edit_message(
-            self,
-            msg: Message,
-            key: str,
-            reply_markup=None,
-            *args,
+        self,
+        msg: Message,
+        key: str,
+        reply_markup=None,
+        *args,
     ):
         text = self.text(key, *args)
         await msg.edit_text(text, reply_markup=reply_markup)
 
     # Отправление кешированного медиа
     async def send_cached_media(
-            self,
-            chat_id: int,
-            media_type: str,
-            media: str,
-            key: str = None,
-            reply_markup=None,
-            *args,
+        self,
+        chat_id: int,
+        media_type: str,
+        media: str,
+        key: str = None,
+        reply_markup=None,
+        *args,
     ):
         if key:
             text = self.text(key, *args)
@@ -66,26 +79,20 @@ class MessageSender():
             "reply_markup": reply_markup,
         }
 
-        if media_type == "photo":
-            await self.bot.send_photo(**kwargs)
-        elif media_type == "video":
-            await self.bot.send_video(**kwargs)
-        elif media_type == "audio":
-            await self.bot.send_audio(**kwargs)
-        elif media_type == "document":
-            await self.bot.send_document(**kwargs)
+        coroutine = getattr(self.bot, "send_" + media_type)
+        await coroutine(**kwargs)
 
     # Открытие медиа
     async def send_media(
-            self,
-            chat_id: int,
-            media_type: str,
-            media: str,
-            key: str = None,
-            reply_markup=None,
-            path: str = None,
-            name: str = None,
-            *args,
+        self,
+        chat_id: int,
+        media_type: str,
+        media: str,
+        key: str = None,
+        reply_markup=None,
+        path: str = None,
+        name: str = None,
+        *args,
     ):
         if key:
             text = self.text(key, *args)
@@ -110,21 +117,12 @@ class MessageSender():
             "reply_markup": reply_markup,
         }
 
-        match media_type:
-            case "photo":
-                await self.bot.send_photo(**kwargs)
-            case "video":
-                await self.bot.send_video(**kwargs)
-            case "audio":
-                await self.bot.send_audio(**kwargs)
-            case "document":
-                await self.bot.send_document(**kwargs)
+        coroutine = getattr(self.bot, "send_" + media_type)
+        await coroutine(**kwargs)
 
 
 # Загрузчик сообщений из JSON файла
 class JSONMessageSender(MessageSender):
-
-    # Загрузка всех сообщений
     def load_messages(self, path_to_file: str = None):
         import json
 

@@ -1,12 +1,13 @@
 from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
-    ReplyKeyboardMarkup,
     KeyboardButton,
+    ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
 )
-from tasks.loader import sender, session
+
 from database.model import User
+from tasks.loader import sender, session
 
 
 # Удаление клавиатуры
@@ -22,20 +23,24 @@ def buttons(is_keys: bool, *args) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text=sender.text(args[i * 2]),
-                    callback_data=args[i * 2 + 1] if len(args) >= (i + 1) * 2
-                    else args[i * 2],
+                    callback_data=(
+                        args[i * 2 + 1] if len(args) >= (i + 1) * 2 else args[i * 2]
+                    ),
                 ),
-            ] for i in range((len(args) + 1) // 2)
+            ]
+            for i in range((len(args) + 1) // 2)
         ]
     else:
         in_buttons = [
             [
                 InlineKeyboardButton(
                     text=args[i * 2],
-                    callback_data=args[i * 2 + 1] if len(args) >= (i + 1) * 2
-                    else args[i * 2],
+                    callback_data=(
+                        args[i * 2 + 1] if len(args) >= (i + 1) * 2 else args[i * 2]
+                    ),
                 ),
-            ] for i in range((len(args) + 1) // 2)
+            ]
+            for i in range((len(args) + 1) // 2)
         ]
     return InlineKeyboardMarkup(inline_keyboard=in_buttons)
 
@@ -45,7 +50,7 @@ def reply(name) -> ReplyKeyboardMarkup:
     in_buttons = [[KeyboardButton(text=name)]]
     return ReplyKeyboardMarkup(
         keyboard=in_buttons,
-        one_time_keyboard=True,
+        one_time_keyboard=False,
         resize_keyboard=True,
     )
 
@@ -62,9 +67,13 @@ def table(width: int, *args, **kwards) -> InlineKeyboardMarkup:
         for _ in range(width):
             in_buttons[-1].append(
                 InlineKeyboardButton(
-                    text=sender.text(
-                        args[index],
-                    ) if is_keys else args[index],
+                    text=(
+                        sender.text(
+                            args[index],
+                        )
+                        if is_keys
+                        else args[index]
+                    ),
                     callback_data=args[index + 1],
                 ),
             )
@@ -77,11 +86,11 @@ def table(width: int, *args, **kwards) -> InlineKeyboardMarkup:
 
 # Таблица reply кнопок
 def reply_table(
-        width: int,
-        *args,
-        **kwards,
+    width: int,
+    *args,
+    **kwards,
 ) -> ReplyKeyboardMarkup:
-    one_time = kwards.get("one_time", True)
+    one_time = kwards.get("one_time", False)
 
     is_keys = kwards.get("is_keys", False)
 
@@ -103,7 +112,8 @@ def reply_table(
                 break
 
     return ReplyKeyboardMarkup(
-        keyboard=in_buttons, one_time_keyboard=one_time, resize_keyboard=True)
+        keyboard=in_buttons, one_time_keyboard=one_time, resize_keyboard=True
+    )
 
 
 # Клавиатура телефона
@@ -118,7 +128,7 @@ def phone() -> ReplyKeyboardMarkup:
     ]
     return ReplyKeyboardMarkup(
         keyboard=in_buttons,
-        one_time_keyboard=True,
+        one_time_keyboard=False,
         resize_keyboard=True,
     )
 
@@ -142,15 +152,19 @@ def user_table(data, restrict=False):
         if user.username:
             name += f" (@{user.username})"
 
-        buttons[-1].append(InlineKeyboardButton(
-            text=name,
-            callback_data=f"{data}_{user.id}",
-        ))
-    buttons.append([
-        InlineKeyboardButton(
-            text=sender.text("admin"),
-            callback_data="admin",
-        ),
-    ])
+        buttons[-1].append(
+            InlineKeyboardButton(
+                text=name,
+                callback_data=f"{data}_{user.id}",
+            )
+        )
+    buttons.append(
+        [
+            InlineKeyboardButton(
+                text=sender.text("admin"),
+                callback_data="admin",
+            ),
+        ]
+    )
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)

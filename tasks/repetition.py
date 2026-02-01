@@ -45,7 +45,7 @@ async def send_msg(session, message: Repetition):
     session.commit()
 
     # fetch all users
-    all_users = session.filter(User).all()
+    all_users = session.query(User).filter_by(enabled_rep=True).all()
 
     # build reply
     if message.button_text and message.button_link:

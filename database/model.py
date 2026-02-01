@@ -26,6 +26,7 @@ class User(Base):
     telegram_id = Column(Integer, nullable=False, unique=True)
     name = Column(String, nullable=False)
     username = Column(String)
+    enabled_rep = Column(Boolean, nullable=False, default=True)
     role = Column(String, nullable=False, default="user")
     restricted = Column(Boolean, nullable=False, default=False)
     registered = Column(
