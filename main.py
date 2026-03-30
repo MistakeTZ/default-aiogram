@@ -16,7 +16,6 @@ async def main() -> None:
 
 # Одновременное выполнение нескольких асинхронных функций
 async def multiple_tasks():
-    # Загрузка обработчика команд
     from tasks import repetition
 
     input_coroutines = [main(), repetition.send_messages()]
@@ -26,7 +25,7 @@ async def multiple_tasks():
 
 # Запуск и остановка бота
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 

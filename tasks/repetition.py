@@ -58,13 +58,12 @@ async def send_msg(session, message: Repetition):
         if i % 2300 == 2299:
             await asyncio.sleep(60 * 60)
         try:
-            await bot.copy_message(
-                user.telegram_id,
-                message.chat_id,
-                message.message_id,
-                reply_markup=reply,
+            await bot.send_message(
+                chat_id=user.chat_id,
+                text=message.text,
+                attachments=[reply] if reply else None,
             )
         except Exception as e:
             logging.warning(
-                f"Failed to send message to {user.telegram_id}: {e}",
+                f"Failed to send message to {user.chat_id}: {e}",
             )

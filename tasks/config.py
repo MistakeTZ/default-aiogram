@@ -3,15 +3,20 @@ import logging
 from datetime import timedelta, timezone
 from os import path
 
-from aiogram.types import BotCommand
+from maxapi import Bot
+from maxapi.types import BotCommand
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Config(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix="BOT_",
+        env_file_encoding="utf-8",
+    )
 
-    token: str
-    time_difference: int = 0
+    TOKEN: str
+    TIMEDELTA: int = 0
 
 
 # Загрузка файла окружения
@@ -30,7 +35,7 @@ def load_env():
 def set_time_difference():
     global tz
     try:
-        time_dif = int(settings.time_difference)
+        time_dif = int(settings.TIMEDELTA)
     except ValueError:
         time_dif = 0
 
@@ -78,17 +83,17 @@ def update_config(field, value):
 
 
 # Установка команд бота
-async def set_bot_commands(bot):
+async def set_bot_commands(bot: Bot):
     command_list = get_config("commands")
     commands = []
     for command in command_list:
         commands.append(
             BotCommand(
-                command=command,
+                name=command,
                 description=command_list[command],
             )
         )
-    await bot.set_my_commands(commands)
+    await bot.set_my_commands(*commands)
 
 
 config_file = {}

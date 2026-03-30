@@ -1,5 +1,5 @@
-from aiogram import Bot, Dispatcher
-from aiogram.client.default import DefaultBotProperties
+from maxapi import Bot, Dispatcher
+from maxapi.enums.parse_mode import ParseMode
 
 from database.model import init_db
 from support.messages import JSONMessageSender, MessageSender
@@ -14,7 +14,7 @@ from tasks.config import settings  # noqa F402
 session = init_db()
 
 # Создание бота
-bot = Bot(settings.token, default=DefaultBotProperties(parse_mode="HTML"))
+bot = Bot(settings.TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher()
 
 sender: MessageSender = JSONMessageSender(bot)

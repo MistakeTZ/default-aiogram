@@ -1,11 +1,13 @@
-from aiogram.fsm.state import State, StatesGroup
+"""
+This module defines the state groups for user and admin interactions in the task management system.
+"""
+
+from maxapi.context import State, StatesGroup
 
 
-# Файл состояний FSM
 class UserState(StatesGroup):
     default = State()
-    admin = State()
-    email = State()
-    phone = State()
-    time = State()
+
+
+class AdminState(StatesGroup):
     mailing = State()

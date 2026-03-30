@@ -23,7 +23,8 @@ class User(Base):
         primary_key=True,
         autoincrement=True,
     )
-    telegram_id = Column(Integer, nullable=False, unique=True)
+    chat_id = Column(Integer, nullable=False, unique=True)
+    user_id = Column(Integer, nullable=False, unique=True)
     name = Column(String, nullable=False)
     username = Column(String)
     enabled_rep = Column(Boolean, nullable=False, default=True)
