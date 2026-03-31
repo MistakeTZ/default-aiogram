@@ -2,12 +2,12 @@ import asyncio
 import logging
 from datetime import datetime
 
-from sqlalchemy import update
+from sqlalchemy import select, update
 
 import handlers  # noqa F401
 from database.model import Repetition, User
 from tasks import kb
-from tasks.loader import bot, session
+from tasks.loader import bot, session_factory
 
 from .config import tz
 
@@ -17,35 +17,41 @@ async def send_messages():
     await asyncio.sleep(5)
 
     while True:
-        messages_to_send = (
-            session.query(Repetition)
-            .filter(
-                Repetition.confirmed == True,
-                Repetition.is_send == False,
-                Repetition.time_to_send < datetime.now(tz=tz),
+        async with session_factory() as session:
+            result = await session.scalars(
+                select(Repetition).where(
+                    Repetition.confirmed.is_(True),
+                    Repetition.is_send.is_(False),
+                    Repetition.time_to_send < datetime.now(tz=tz),
+                )
             )
-            .all()
-        )
+            messages_to_send = [message.id for message in result.all()]
 
         if messages_to_send:
-            to_send_tasks = [send_msg(session, msg) for msg in messages_to_send]
+            to_send_tasks = [send_msg(message_id) for message_id in messages_to_send]
             await asyncio.gather(*to_send_tasks)
 
         await asyncio.sleep(60)
 
 
-async def send_msg(session, message: Repetition):
-    # mark as sent
-    session.execute(
-        update(Repetition)
-        .where(Repetition.chat_id == message.chat_id)
-        .where(Repetition.message_id == message.message_id)
-        .values(is_send=True),
-    )
-    session.commit()
+async def send_msg(message_id: int):
+    async with session_factory() as session:
+        message = await session.get(Repetition, message_id)
+        if not message:
+            return
 
-    # fetch all users
-    all_users = session.query(User).filter_by(enabled_rep=True).all()
+        # mark as sent
+        await session.execute(
+            update(Repetition)
+            .where(Repetition.chat_id == message.chat_id)
+            .where(Repetition.message_id == message.message_id)
+            .values(is_send=True),
+        )
+        await session.commit()
+
+        # fetch all users
+        users_result = await session.scalars(select(User).filter_by(enabled_rep=True))
+        all_users = users_result.all()
 
     # build reply
     if message.button_text and message.button_link:

@@ -11,7 +11,7 @@ load_config()
 from tasks.config import settings  # noqa F402
 
 # Загрузка базы данных и создание таблиц, если их не существует
-session = init_db()
+session_factory = init_db()
 
 # Создание бота
 bot = Bot(settings.TOKEN, parse_mode=ParseMode.HTML)

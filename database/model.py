@@ -1,14 +1,14 @@
 from sqlalchemy import (
-    create_engine,
     Column,
     Integer,
     String,
     Boolean,
     DateTime,
     func,
+    create_engine,
 )
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import declarative_base
 
 # Base model
 Base = declarative_base()
@@ -55,7 +55,17 @@ class Repetition(Base):
 
 # Init DB
 def init_db(db_path="database/db.sqlite3"):
-    engine = create_engine(f"sqlite:///{db_path}", echo=False)
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    return Session()
+    # Keep schema bootstrap synchronous to avoid async initialization at import time.
+    sync_engine = create_engine(f"sqlite:///{db_path}", echo=False)
+    Base.metadata.create_all(sync_engine)
+    sync_engine.dispose()
+
+    async_engine = create_async_engine(
+        f"sqlite+aiosqlite:///{db_path}",
+        echo=False,
+    )
+    return async_sessionmaker(
+        bind=async_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
